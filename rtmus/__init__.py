@@ -3,7 +3,6 @@ import gc
 import traceback
 from typing import Awaitable, Callable, Optional
 
-import click
 import uvloop  # type: ignore
 
 from .log import logger
@@ -23,15 +22,15 @@ async def async_main(track: Callable[[Performance], Awaitable[None]]) -> None:
     try:
         midi_in, midi_out = get_ports("Virtual", clock_source=True)
     except ValueError as port:
-        click.secho(f"{port} not connected", fg="red", err=True)
-        raise click.Abort
+        print(f"{port} not connected", fg="red", err=True)
+        raise
 
     def midi_callback(msg, data=None):
-        midi_message, event_delta = msg
+        msg, event_delta = msg
         try:
-            loop.call_soon_threadsafe(queue.put_nowait, (midi_message, event_delta))
+            loop.call_soon_threadsafe(queue.put_nowait, (msg, event_delta))
         except BaseException as be:
-            click.secho(f"callback exc: {type(be)} {be}", fg="red", err=True)
+            print(f"callback exc: {type(be)} {be}", fg="red", err=True)
 
     midi_in.set_callback(midi_callback)
     performance = Performance(midi_out, track)
