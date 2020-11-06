@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from time import time
 from typing import List
 
 from attr import Factory, dataclass
@@ -19,8 +20,8 @@ class Countdown(asyncio.Future):
 
 @dataclass
 class Metronome:
-    last_pulse: float = 0.0
-    pulse_delta: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
+    last_tick: float = 0.0
+    delta_tick: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
     position: int = 0  # pulses since START
     countdowns: List[Countdown] = Factory(list)
     countdowns_lock: asyncio.Lock = Factory(asyncio.Lock)
@@ -42,7 +43,10 @@ class Metronome:
                     countdown.cancel()
             self.countdowns = []
 
-    async def tick(self) -> None:
+    async def tick(self) -> float:
+        tick_time = time()
+        self.delta_tick = tick_time - self.last_tick
+        self.last_tick = tick_time
         self.position += 1
         done_indexes: List[int] = []
         async with self.countdowns_lock:
@@ -52,3 +56,4 @@ class Metronome:
                     done_indexes.append(index)
             for index in reversed(done_indexes):
                 del self.countdowns[index]
+        return self.delta_tick

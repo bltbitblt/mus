@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterable, List, Tuple
 
-from rtmidi import MidiIn, MidiOut
+from rtmidi import MidiIn, MidiOut  # type: ignore
 
 # MIDI messages
 NOTE_OFF = 0b10000000
