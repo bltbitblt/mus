@@ -5,13 +5,13 @@ from attr import dataclass
 
 @dataclass
 class DeltaLogger:
-    base_time = time()
-    last_time = time()
+    base_time: float = time()
+    last_time: float = 0.0
 
-    def log(self, msg):
+    def log(self, msg: str):
         log_time = time() - self.base_time
         delta = log_time - self.last_time
-        print(f"time: {log_time:.4f}\ttime delta: {delta:.4f}\t{msg}")
+        print(f"time: {log_time:.4f}▐time delta: {delta:.6f}▐{msg}")
         self.last_time = log_time
 
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 from time import time
-from typing import List
+from typing import List, Tuple
 
 from attr import Factory, dataclass
 
@@ -20,11 +20,11 @@ class Countdown(asyncio.Future):
 
 @dataclass
 class Metronome:
-    last_tick: float = 0.0
-    delta_tick: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
+    last: float = time()
+    delta: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
+    last_delta: float = 0.0
     position: int = 0  # pulses since START
     countdowns: List[Countdown] = Factory(list)
-    countdowns_lock: asyncio.Lock = Factory(asyncio.Lock)
     bar: asyncio.Event = Factory(asyncio.Event)
 
     async def wait(self, pulses: int) -> None:
@@ -32,32 +32,32 @@ class Metronome:
             return
 
         countdown = Countdown(pulses)
-        async with self.countdowns_lock:
-            self.countdowns.append(countdown)
+        self.countdowns.append(countdown)
         await countdown
 
     async def reset(self) -> None:
         self.position = 0
-        async with self.countdowns_lock:
-            for countdown in self.countdowns:
-                if not countdown.done():  # could have been cancelled by CTRL-C
-                    countdown.cancel()
-            self.countdowns = []
+        for countdown in self.countdowns:
+            if not countdown.done():  # could have been cancelled by CTRL-C
+                countdown.cancel()
+        self.countdowns = []
 
-    async def tick(self) -> float:
-        if self.position % 96 == 0:
-            self.bar.set()
-            self.bar.clear()
+    async def tick(self) -> Tuple[float, float]:
         tick_time = time()
-        self.delta_tick = tick_time - self.last_tick
-        self.last_tick = tick_time
+        self.delta = tick_time - self.last
+        self.last = tick_time
+        jitter = (self.last_delta - self.delta) * 1000
+        self.last_delta = self.delta
         self.position += 1
+        if self.position % 96 == 1:
+            self.bar.set()
+        if self.position % 96 == 13:
+            self.bar.clear()
         done_indexes: List[int] = []
-        async with self.countdowns_lock:
-            for index, countdown in enumerate(self.countdowns):
-                countdown.tick()
-                if countdown.done():
-                    done_indexes.append(index)
-            for index in reversed(done_indexes):
-                del self.countdowns[index]
-        return self.delta_tick
+        for index, countdown in enumerate(self.countdowns):
+            countdown.tick()
+            if countdown.done():
+                done_indexes.append(index)
+        for index in reversed(done_indexes):
+            del self.countdowns[index]
+        return self.delta, jitter

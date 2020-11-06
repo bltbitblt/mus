@@ -36,7 +36,7 @@ STRIP_CHANNEL = 0b11110000
 EventDelta = float  # in seconds
 TimeStamp = float  # time.time()
 MidiPacket = List[int]
-MidiMessage = Tuple[MidiPacket, EventDelta, TimeStamp]
+MidiMessage = Tuple[MidiPacket, EventDelta]
 
 ALL_CHANNELS = range(16)
 

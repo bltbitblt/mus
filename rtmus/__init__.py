@@ -1,11 +1,12 @@
 import asyncio
-import time
+import gc
 import traceback
 from typing import Awaitable, Callable, Optional
 
 import click
 import uvloop  # type: ignore
 
+from .log import logger
 from .midi import CLOCK, NOTE_ON, START, STOP, MidiMessage, get_ports
 from .performance import Performance
 
@@ -26,12 +27,9 @@ async def async_main(track: Callable[[Performance], Awaitable[None]]) -> None:
         raise click.Abort
 
     def midi_callback(msg, data=None):
-        sent_time = time.time()
         midi_message, event_delta = msg
         try:
-            loop.call_soon_threadsafe(
-                queue.put_nowait, (midi_message, event_delta, sent_time)
-            )
+            loop.call_soon_threadsafe(queue.put_nowait, (midi_message, event_delta))
         except BaseException as be:
             click.secho(f"callback exc: {type(be)} {be}", fg="red", err=True)
 
@@ -47,13 +45,13 @@ async def async_main(track: Callable[[Performance], Awaitable[None]]) -> None:
 
 async def _print_exceptions(task):
     try:
-        print("track start")
+        logger.log("track start")
         await task
     except asyncio.CancelledError:
-        print("track stop")
+        logger.log("track stop")
         raise
     except Exception:
-        print("exec")
+        logger.log("exception")
         traceback.print_exc()
         raise
 
@@ -61,30 +59,33 @@ async def _print_exceptions(task):
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
-    tick_delta = 0.0
     track: Optional[asyncio.Task] = None
+    tick_delta = 0.0
+    tick_jitter = 0.0
     while True:
-        msg, delta, sent_time = await queue.get()
-        if __debug__:
-            latency = time.time() - sent_time
+        msg, delta = await queue.get()
         if msg[0] == CLOCK:
-            tick_delta = await performance.metronome.tick()
+            tick_delta, tick_jitter = await performance.metronome.tick()
         elif msg[0] == START:
-            print("midi start")
+            logger.log("midi start")
             await performance.metronome.reset()
             track = asyncio.create_task(
                 _print_exceptions(performance.track(performance))
             )
         elif msg[0] == STOP:
-            print("midi stop")
+            logger.log("midi stop")
             if track:
                 track.cancel()
                 track = None
             performance.stop()
         elif msg[0] == NOTE_ON:
             performance.last_note = msg[1]
+        gc_count = gc.collect(1)
         if __debug__:
-            print(
-                f"{msg}\tevent delta: {delta:.4f}\t"
-                f"tick delta: {tick_delta:.4f}\tlatency: {latency:.4f}"
+            if gc_count:
+                logger.log(f"gc: {gc_count}")
+            pos = performance.metronome.position
+            logger.log(
+                f"msg: {str(msg):^15}▐event delta: {delta:.5f}▐"
+                f"tick delta: {tick_delta:.5f}▐jitter: {tick_jitter:7.3f}ms▐pos: {pos}"
             )
