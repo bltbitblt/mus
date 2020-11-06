@@ -11,7 +11,7 @@ class DeltaLogger:
     def log(self, msg: str):
         log_time = time() - self.base_time
         delta = log_time - self.last_time
-        print(f"time: {log_time:.4f}▐time delta: {delta:.6f}▐{msg}")
+        print(f"time: {log_time:8.4f}▐time delta: {delta:.6f}▐{msg}")
         self.last_time = log_time
 
 

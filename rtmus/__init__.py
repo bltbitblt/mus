@@ -68,10 +68,10 @@ async def midi_consumer(
             tick_delta, tick_jitter = await performance.metronome.tick()
         elif msg[0] == START:
             logger.log("midi start")
-            await performance.metronome.reset()
             track = asyncio.create_task(
                 _print_exceptions(performance.track(performance))
             )
+            performance.metronome.reset()
         elif msg[0] == STOP:
             logger.log("midi stop")
             if track:

@@ -30,12 +30,11 @@ class Metronome:
     async def wait(self, pulses: int) -> None:
         if pulses == 0:
             return
-
         countdown = Countdown(pulses)
         self.countdowns.append(countdown)
         await countdown
 
-    async def reset(self) -> None:
+    def reset(self) -> None:
         self.position = 0
         for countdown in self.countdowns:
             if not countdown.done():  # could have been cancelled by CTRL-C
