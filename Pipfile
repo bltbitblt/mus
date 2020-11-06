@@ -7,7 +7,9 @@ verify_ssl = true
 
 [packages]
 python-rtmidi = "*"
-attr = "*"
+attrs = "*"
+click = "*"
+uvloop = "*"
 
 [requires]
 python_version = "3.9"

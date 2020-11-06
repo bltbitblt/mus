@@ -4,7 +4,6 @@ from typing import Iterable, Tuple
 
 from rtmidi import MidiIn, MidiOut
 
-
 # MIDI messages
 NOTE_OFF = 0b10000000
 NOTE_ON = 0b10010000
@@ -41,31 +40,26 @@ def get_ports(port_name: str, *, clock_source: bool = False) -> Tuple[MidiIn, Mi
     midi_out = MidiOut()
 
     midi_in_ports = midi_in.get_ports()
-    midi_out_ports = midi_out.get_ports()
-    try:
-        midi_in.open_port(midi_in_ports.index(port_name))
-    except ValueError:
-        raise ValueError(port_name) from None
+    for i, midi_in_port in enumerate(midi_in_ports):
+        if port_name in midi_in_port:
+            try:
+                midi_in.open_port(i)
+                break
+            except ValueError:
+                raise ValueError(port_name) from None
 
     if clock_source:
         midi_in.ignore_types(timing=False)
-    try:
-        midi_out.open_port(midi_out_ports.index(port_name))
-    except ValueError:
-        raise ValueError(port_name) from None
+
+    midi_out_ports = midi_out.get_ports()
+    for i, midi_out_port in enumerate(midi_out_ports):
+        if port_name in midi_out_port:
+            try:
+                midi_out.open_port(i)
+            except ValueError:
+                raise ValueError(port_name) from None
 
     return midi_in, midi_out
-
-
-def get_out_port(port_name: str) -> MidiOut:
-    midi_out = MidiOut()
-    midi_out_ports = midi_out.get_ports()
-    try:
-        midi_out.open_port(midi_out_ports.index(port_name))
-    except ValueError:
-        raise ValueError(port_name) from None
-
-    return midi_out
 
 
 def silence(
