@@ -1,15 +1,12 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
-
-[dev-packages]
+name = "pypi"
 
 [packages]
-python-rtmidi = "*"
-attrs = "*"
-click = "*"
-uvloop = "*"
+rtmus = {editable = true, path = "."}
+
+[dev-packages]
 
 [requires]
 python_version = "3.9"

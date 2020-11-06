@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, List
 
 from rtmidi import MidiIn, MidiOut
 
@@ -31,6 +31,12 @@ PORTAMENTO_TIME = 0b00000101
 # Operations on MIDI constants
 STRIP_CHANNEL = 0b11110000
 
+
+# types
+EventDelta = float  # in seconds
+TimeStamp = float  # time.time()
+MidiPacket = List[int]
+MidiMessage = Tuple[MidiPacket, EventDelta, TimeStamp]
 
 ALL_CHANNELS = range(16)
 

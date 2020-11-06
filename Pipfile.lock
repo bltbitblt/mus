@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6723ac11b0141a01e4747305ba3ecb722c3618f54b00a083801db193bf1b1c73"
+            "sha256": "a3f96556f0effecf1dc979e503b506cad7f8c419729a7ed3c895cf5b4bb90539"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -21,7 +21,7 @@
                 "sha256:31b2eced602aa8423c2aea9c76a724617ed67cf9513173fd3a4f03e3a929c7e6",
                 "sha256:832aa3cde19744e49938b91fea06d69ecb9e649c93ba974535d08ad92164f700"
             ],
-            "index": "pypi",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==20.3.0"
         },
         "click": {
@@ -29,7 +29,7 @@
                 "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
                 "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"
             ],
-            "index": "pypi",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
             "version": "==7.1.2"
         },
         "python-rtmidi": {
@@ -47,8 +47,11 @@
                 "sha256:c2e8c3a077928ab5996dc6a0ad7d3723235b76458177c2d7297cb9706bedc779",
                 "sha256:f992685ec4739a51a080069f35355b1769e47b7ed2351008014a6085a08f95f5"
             ],
-            "index": "pypi",
             "version": "==1.4.6"
+        },
+        "rtmus": {
+            "editable": true,
+            "path": "."
         },
         "uvloop": {
             "hashes": [
@@ -62,7 +65,6 @@
                 "sha256:e7514d7a48c063226b7d06617cbb12a14278d4323a065a8d46a7962686ce2e95",
                 "sha256:f07909cd9fc08c52d294b1570bba92186181ca01fe3dc9ffba68955273dd7362"
             ],
-            "index": "pypi",
             "version": "==0.14.0"
         }
     },
