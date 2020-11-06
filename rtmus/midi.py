@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Tuple, List
+from typing import Iterable, List, Tuple
 
 from rtmidi import MidiIn, MidiOut
 

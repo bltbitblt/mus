@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import List
 
-from attr import dataclass, Factory
+from attr import Factory, dataclass
 
 
 class Countdown(asyncio.Future):
@@ -19,6 +19,7 @@ class Countdown(asyncio.Future):
 
 @dataclass
 class Metronome:
+    last_pulse: float = 0.0
     pulse_delta: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
     position: int = 0  # pulses since START
     countdowns: List[Countdown] = Factory(list)

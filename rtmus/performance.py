@@ -1,8 +1,6 @@
 """See the docstring of main()."""
 from __future__ import annotations
 
-from typing import List, Tuple
-
 from attr import Factory, dataclass
 
 from .metronome import Metronome
