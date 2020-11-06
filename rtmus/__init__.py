@@ -1,21 +1,20 @@
 import asyncio
 import time
-from typing import Awaitable
+from typing import Awaitable, Callable, Optional
 
 import click
 import uvloop  # type: ignore
 
-from .midi import (ALL_CHANNELS, ALL_NOTES_OFF, CLOCK, CONTROL_CHANGE, NOTE_ON,
-                   START, STOP, MidiMessage, get_ports)
+from .midi import CLOCK, NOTE_ON, START, STOP, MidiMessage, get_ports
 from .performance import Performance
 
 
-def run(track: Awaitable[Performance]) -> None:
+def run(track: Callable[[Performance], Awaitable[None]]) -> None:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(async_main(track))
 
 
-async def async_main(track: Awaitable[Performance]) -> None:
+async def async_main(track: Callable[[Performance], Awaitable[None]]) -> None:
     queue: asyncio.Queue[MidiMessage] = asyncio.Queue(maxsize=256)
     loop = asyncio.get_event_loop()
 
@@ -41,8 +40,7 @@ async def async_main(track: Awaitable[Performance]) -> None:
         await midi_consumer(queue, performance)
     except asyncio.CancelledError:
         midi_in.cancel_callback()
-        for channel in ALL_CHANNELS:
-            midi_out.send_message([CONTROL_CHANGE | channel, ALL_NOTES_OFF, 0])
+        performance.stop()
         midi_out.send_message([STOP])
 
 
@@ -50,15 +48,21 @@ async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
     tick_delta = 0.0
+    track: Optional[asyncio.Task] = None
     while True:
         msg, delta, sent_time = await queue.get()
-        latency = time.time() - sent_time
+        if __debug__:
+            latency = time.time() - sent_time
         if msg[0] == CLOCK:
             tick_delta = await performance.metronome.tick()
         elif msg[0] == START:
             await performance.metronome.reset()
+            track = asyncio.create_task(performance.track(performance))
         elif msg[0] == STOP:
-            pass
+            if track:
+                track.cancel()
+                track = None
+            performance.stop()
         elif msg[0] == NOTE_ON:
             performance.last_note = msg[1]
         if __debug__:
