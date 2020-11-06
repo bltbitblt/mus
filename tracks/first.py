@@ -1,16 +1,19 @@
 import asyncio
 
-from rtmus import run
+from rtmus import Performance, run
 
 
-async def track(performance):
+async def track(p: Performance):
     try:
-        print("start")
         while True:
-            await performance.wait(24)
+            await p.metronome.bar.wait()
+            await p.play(0, 48, 24, 100)
+            await p.play(0, 48, 24, 100)
+            await p.play(0, 48, 24, 100)
+            await p.play(0, 48, 12, 100)
             print("beat")
     except asyncio.CancelledError:
-        print("stop")
+        print("track stop")
     pass
 
 

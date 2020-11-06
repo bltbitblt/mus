@@ -1,5 +1,6 @@
 import asyncio
 import time
+import traceback
 from typing import Awaitable, Callable, Optional
 
 import click
@@ -44,6 +45,19 @@ async def async_main(track: Callable[[Performance], Awaitable[None]]) -> None:
         midi_out.send_message([STOP])
 
 
+async def _print_exceptions(task):
+    try:
+        print("track start")
+        await task
+    except asyncio.CancelledError:
+        print("track stop")
+        raise
+    except Exception:
+        print("exec")
+        traceback.print_exc()
+        raise
+
+
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
@@ -56,9 +70,13 @@ async def midi_consumer(
         if msg[0] == CLOCK:
             tick_delta = await performance.metronome.tick()
         elif msg[0] == START:
+            print("midi start")
             await performance.metronome.reset()
-            track = asyncio.create_task(performance.track(performance))
+            track = asyncio.create_task(
+                _print_exceptions(performance.track(performance))
+            )
         elif msg[0] == STOP:
+            print("midi stop")
             if track:
                 track.cancel()
                 track = None

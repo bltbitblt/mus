@@ -25,6 +25,7 @@ class Metronome:
     position: int = 0  # pulses since START
     countdowns: List[Countdown] = Factory(list)
     countdowns_lock: asyncio.Lock = Factory(asyncio.Lock)
+    bar: asyncio.Event = Factory(asyncio.Event)
 
     async def wait(self, pulses: int) -> None:
         if pulses == 0:
@@ -44,6 +45,9 @@ class Metronome:
             self.countdowns = []
 
     async def tick(self) -> float:
+        if self.position % 96 == 0:
+            self.bar.set()
+            self.bar.clear()
         tick_time = time()
         self.delta_tick = tick_time - self.last_tick
         self.last_tick = tick_time
