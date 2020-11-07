@@ -9,10 +9,14 @@ async def track(p: Performance):
         while True:
             await p.metronome.bar.wait()
             logger.log("beat")
+            logger.log("4th")
             await p.play(0, 48, 24, 100)
+            logger.log("4th")
             await p.play(0, 48, 24, 100)
+            logger.log("4th")
             await p.play(0, 48, 24, 100)
-            # await p.play(0, 48, 22, 100)
+            logger.log("4th")
+            await p.play(0, 48, 22, 100)
     except asyncio.CancelledError:
         logger.log("track stop")
     pass

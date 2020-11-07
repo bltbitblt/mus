@@ -35,7 +35,7 @@ class Metronome:
         await countdown
 
     def reset(self) -> None:
-        self.position = 0
+        self.bar.clear()
         for countdown in self.countdowns:
             if not countdown.done():  # could have been cancelled by CTRL-C
                 countdown.cancel()
@@ -47,10 +47,9 @@ class Metronome:
         self.last = tick_time
         jitter = (self.last_delta - self.delta) * 1000
         self.last_delta = self.delta
-        self.position += 1
-        if self.position % 96 == 1:
+        if self.position % 96 == 0:
             self.bar.set()
-        if self.position % 96 == 13:
+        if self.position % 96 == 12:
             self.bar.clear()
         done_indexes: List[int] = []
         for index, countdown in enumerate(self.countdowns):
@@ -59,4 +58,5 @@ class Metronome:
                 done_indexes.append(index)
         for index in reversed(done_indexes):
             del self.countdowns[index]
+        self.position += 1
         return self.delta, jitter
