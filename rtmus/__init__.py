@@ -7,8 +7,7 @@ from typing import Awaitable, Callable, Optional
 import uvloop  # type: ignore
 
 from .log import logger
-from .midi import (CLOCK, CONTINUE, NOTE_ON, SONG_POSITION, START, STOP,
-                   MidiMessage, get_ports)
+from .midi import MidiMessage, get_ports
 from .performance import Performance
 
 
@@ -43,7 +42,6 @@ async def async_main(
     except asyncio.CancelledError:
         midi_in.cancel_callback()
         performance.stop()
-        midi_out.send_message([STOP])
 
 
 async def task(t):
@@ -62,7 +60,10 @@ async def task(t):
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
-    track: Optional[asyncio.Task] = None
+    performance.start()
+    track: Optional[asyncio.Task] = asyncio.create_task(
+        task(performance.track(performance))
+    )
     tick_delta = 0.0
     tick_jitter = 0.0
     while True:
@@ -77,7 +78,7 @@ async def midi_consumer(
             if gc_count:
                 logger.log(f"gc: {gc_count}")
             if msg:
-                logger.log("msg: {str(msg):^15}▐delta: {delta:5f}")
+                logger.log(f"msg: {str(msg):^15}▐delta: {delta:5f}")
             logger.log(
                 f"tick delta: {tick_delta:.5f}▐jitter: {tick_jitter:7.3f}ms▐"
                 f"pos: {performance.position}"

@@ -7,7 +7,7 @@ from attr import Factory, dataclass
 
 from .metronome import Metronome
 from .midi import (ALL_CHANNELS, ALL_NOTES_OFF, CLOCK, CONTROL_CHANGE,
-                   NOTE_OFF, NOTE_ON, MidiOut)
+                   NOTE_OFF, NOTE_ON, START, STOP, MidiOut)
 
 
 @dataclass
@@ -38,8 +38,12 @@ class Performance:
     async def wait(self, pulses: int) -> None:
         await self.metronome.wait(pulses)
 
+    def start(self) -> None:
+        self.out.send_message([START])
+
     def stop(self) -> None:
         out = self.out
+        out.send_message([STOP])
         for channel in ALL_CHANNELS:
             out.send_message([CONTROL_CHANGE | channel, ALL_NOTES_OFF, 0])
 
