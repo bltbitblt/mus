@@ -16,10 +16,10 @@ from .midi import (ALL_CHANNELS, ALL_NOTES_OFF, CLOCK, CONTROL_CHANGE,
 _resolution = 0.001
 
 
-async def task_handler(t):
+async def task_handler(task: Awaitable[None]):
     try:
         logger.log("track start")
-        await t
+        await task
     except asyncio.CancelledError:
         logger.log("track stop")
         raise
@@ -29,15 +29,20 @@ async def task_handler(t):
         raise
 
 
-@dataclass
-class Performance:
-    out: MidiOut
-    track: Callable[[Performance], Awaitable[None]]
-    bpm: float = 120
-    metronome: Metronome = Factory(Metronome)
-    last_note: int = 48
-    position: int = 0
-    tasks: List[asyncio.Task] = []
+class Task:
+    def __init__(
+        self, task: Callable[[Task], Awaitable[None]], performance: Performance
+    ):
+        self.performance = performance
+        self.task = asyncio.create_task(task_handler(task(self)))
+        self.waiting = False
+        self.cancel = self.task.cancel
+        self.new = performance.new_task
+
+    async def wait(self, pulses: int) -> None:
+        self.waiting = True
+        await self.performance.metronome.wait(pulses)
+        self.waiting = False
 
     async def play(
         self,
@@ -47,7 +52,7 @@ class Performance:
         volume: int,
         decay: float = 0.5,
     ) -> None:
-        out = self.out
+        out = self.performance.out
         note_on_length = int(round(pulses * decay, 0))
         rest_length = pulses - note_on_length
         out.send_message([NOTE_ON | channel, note, volume])
@@ -55,11 +60,19 @@ class Performance:
         out.send_message([NOTE_OFF | channel, note, volume])
         await self.wait(rest_length)
 
-    async def wait(self, pulses: int) -> None:
-        await self.metronome.wait(pulses)
 
-    def task(self, task: Awaitable[None]) -> None:
-        self.tasks.append(asyncio.create_task(task_handler(task)))
+@dataclass
+class Performance:
+    out: MidiOut
+    track: Callable[[Task], Awaitable[None]]
+    bpm: float = 120
+    metronome: Metronome = Factory(Metronome)
+    last_note: int = 48
+    position: int = 0
+    tasks: List[Task] = []
+
+    def new_task(self, task: Callable[[Task], Awaitable[None]]) -> None:
+        self.tasks.append(Task(task, self))
 
     def start(self) -> None:
         self.out.send_message([START])
@@ -75,6 +88,8 @@ class Performance:
     async def tick(self, now: float) -> Tuple[float, float]:
         self.out.send_message([CLOCK])
         self.position += 1
+        while len(self.tasks) and not all([task.waiting for task in self.tasks]):
+            await asyncio.sleep(0)
         return await self.metronome.tick(now)
 
     async def spin_sleep(self, sleep_time):

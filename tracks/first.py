@@ -1,10 +1,10 @@
 import asyncio
 
-from rtmus import Performance, run
+from rtmus import Task, run
 from rtmus.log import logger
 
 
-async def track(p: Performance):
+async def track(p: Task):
     try:
         while True:
             logger.log("beat")

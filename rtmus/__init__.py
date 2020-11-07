@@ -7,17 +7,15 @@ import uvloop  # type: ignore
 
 from .log import logger
 from .midi import MidiMessage, get_ports
-from .performance import Performance
+from .performance import Performance, Task
 
 
-def run(track: Callable[[Performance], Awaitable[None]], bpm: float) -> None:
+def run(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(async_main(track, bpm))
 
 
-async def async_main(
-    track: Callable[[Performance], Awaitable[None]], bpm: float
-) -> None:
+async def async_main(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
     queue: asyncio.Queue[MidiMessage] = asyncio.Queue(maxsize=256)
     loop = asyncio.get_event_loop()
 
@@ -47,7 +45,7 @@ async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
     performance.start()
-    performance.task(performance.track(performance))
+    performance.new_task(performance.track)
     tick_delta = 0.0
     tick_jitter = 0.0
     msg: Optional[List[int]]
