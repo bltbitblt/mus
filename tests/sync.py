@@ -1,4 +1,5 @@
 import sys
+import time
 
 from attr import dataclass
 from rtmidi import MidiIn, MidiOut  # type: ignore
@@ -63,43 +64,22 @@ midi_in, midi_out = get_ports("Virtual")
 
 
 @dataclass
-class Echo:
-    pos = 0
-    on = False
+class Sync:
+    bpm: float = 120
+    resolution: float = 0.001
 
-    def midi_callback(self, msg, data=None):
-        msg = msg[0]
-        name = ""
-        if msg[0] == CLOCK:
-            name = "CLOCK"
-            if self.on:
-                if self.on and self.pos % 24 == 0:
-                    print("note on")
-                    midi_out.send_message([NOTE_ON, 48, 100])
-                if self.on and self.pos % 24 == 12:
-                    print("note off")
-                    midi_out.send_message([NOTE_OFF, 48, 100])
-                self.pos += 1
-        elif msg[0] == START:
-            name = "START"
-            self.pos = 0
-            self.on = True
-        elif msg[0] == STOP:
-            name = "STOP"
-            self.on = False
-        elif msg[0] == CONTINUE:
-            name = "CONTINUE"
-            self.on = True
-        elif msg[0] == SONG_POSITION:
-            name = "SONG_POSITION"
-            self.pos = ((msg[2] << 7) + msg[1]) * 6
-        if self.on:
-            print(f"pos: {self.pos - 1} msg: {msg} name: {name}")
+    def spin_sleep(self, sleep_time):
+        deadline = sleep_time + time.time()
+        time.sleep(sleep_time - self.resolution)
+        while deadline > time.time():
+            pass
+
+    def run(self):
+        sleep_time = 60 / self.bpm / 24
+        while True:
+            midi_out.send_message([CLOCK])
+            self.spin_sleep(sleep_time)
 
 
-echo = Echo()
-midi_in.ignore_types(timing=False)
-midi_in.set_callback(echo.midi_callback)
-
-
-sys.stdin.read()
+sync = Sync(120.05)
+sync.run()

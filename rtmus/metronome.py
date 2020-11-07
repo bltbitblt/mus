@@ -23,7 +23,6 @@ class Metronome:
     last: float = time()
     delta: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
     last_delta: float = 0.0
-    position: int = 0  # pulses since START
     countdowns: List[Countdown] = Factory(list)
     bar: asyncio.Event = Factory(asyncio.Event)
 
@@ -47,10 +46,6 @@ class Metronome:
         self.last = tick_time
         jitter = (self.last_delta - self.delta) * 1000
         self.last_delta = self.delta
-        if self.position % 96 == 0:
-            self.bar.set()
-        if self.position % 96 == 12:
-            self.bar.clear()
         done_indexes: List[int] = []
         for index, countdown in enumerate(self.countdowns):
             countdown.tick()
@@ -58,5 +53,4 @@ class Metronome:
                 done_indexes.append(index)
         for index in reversed(done_indexes):
             del self.countdowns[index]
-        self.position += 1
         return self.delta, jitter
