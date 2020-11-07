@@ -1,4 +1,3 @@
-import sys
 import time
 
 from attr import dataclass

@@ -21,8 +21,8 @@ class Countdown(asyncio.Future):
 @dataclass
 class Metronome:
     last: float = time()
-    delta: float = 0.02  # 125 BPM (0.02 / 60 / 24 pulses per quarter note)
-    last_delta: float = 0.0
+    delta: float = 60 / 120 / 24
+    last_delta: float = delta
     countdowns: List[Countdown] = Factory(list)
     bar: asyncio.Event = Factory(asyncio.Event)
 
@@ -40,10 +40,9 @@ class Metronome:
                 countdown.cancel()
         self.countdowns = []
 
-    async def tick(self) -> Tuple[float, float]:
-        tick_time = time()
-        self.delta = tick_time - self.last
-        self.last = tick_time
+    async def tick(self, now: float) -> Tuple[float, float]:
+        self.delta = now - self.last
+        self.last = now
         jitter = (self.last_delta - self.delta) * 1000
         self.last_delta = self.delta
         done_indexes: List[int] = []

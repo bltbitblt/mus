@@ -1,8 +1,7 @@
 import asyncio
 import gc
-import traceback
 from time import time
-from typing import Awaitable, Callable, Optional
+from typing import Awaitable, Callable, List, Optional
 
 import uvloop  # type: ignore
 
@@ -25,7 +24,7 @@ async def async_main(
     try:
         midi_in, midi_out = get_ports("Virtual")
     except ValueError as port:
-        print(f"{port} not connected", fg="red", err=True)
+        print(f"{port} not connected")
         raise
 
     def midi_callback(msg, data=None):
@@ -33,7 +32,7 @@ async def async_main(
         try:
             loop.call_soon_threadsafe(queue.put_nowait, (msg, event_delta))
         except BaseException as be:
-            print(f"callback exc: {type(be)} {be}", fg="red", err=True)
+            print(f"callback exc: {type(be)} {be}")
 
     midi_in.set_callback(midi_callback)
     performance = Performance(midi_out, track, bpm)
@@ -44,35 +43,23 @@ async def async_main(
         performance.stop()
 
 
-async def task(t):
-    try:
-        logger.log("track start")
-        await t
-    except asyncio.CancelledError:
-        logger.log("track stop")
-        raise
-    except Exception:
-        logger.log("exception")
-        traceback.print_exc()
-        raise
-
-
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
     performance.start()
-    track: Optional[asyncio.Task] = asyncio.create_task(
-        task(performance.track(performance))
-    )
+    performance.task(performance.track(performance))
     tick_delta = 0.0
     tick_jitter = 0.0
+    msg: Optional[List[int]]
+    delta: Optional[float]
     while True:
-        deadline = time() + (60 / performance.bpm / 24)
+        now = time()
+        deadline = now + (60 / performance.bpm / 24)
         try:
-            msg, delta = await queue.get_nowait()
+            msg, delta = queue.get_nowait()
         except asyncio.QueueEmpty:
             msg, delta = (None, None)
-        tick_delta, tick_jitter = await performance.tick()
+        tick_delta, tick_jitter = await performance.tick(now)
         gc_count = gc.collect(1)
         if __debug__:
             if gc_count:
@@ -85,4 +72,4 @@ async def midi_consumer(
             )
         rest = deadline - time()
         if rest > 0:
-            await asyncio.sleep(rest)
+            await performance.spin_sleep(rest)
