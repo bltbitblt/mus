@@ -6,6 +6,8 @@ My music midi thingy. Based on [aiotone](https://github.com/ambv/aiotone).
 TODO
 ----
 
+* Cleanup class structure
+
 * Register task at Performance and it will cancel the tasks on STOP
 * Alternative architectures:
   * Start tasks using position in track-callback

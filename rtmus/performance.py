@@ -75,12 +75,15 @@ class Performance:
         self.tasks.append(Task(task, self))
 
     def start(self) -> None:
+        logger.log("send start")
         self.out.send_message([START])
 
     def stop(self) -> None:
+        logger.log("cancel tasks")
         for task in self.tasks:
             task.cancel()
         out = self.out
+        logger.log("send stop")
         out.send_message([STOP])
         for channel in ALL_CHANNELS:
             out.send_message([CONTROL_CHANGE | channel, ALL_NOTES_OFF, 0])
