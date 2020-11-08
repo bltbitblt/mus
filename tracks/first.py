@@ -7,7 +7,7 @@ from rtmus.log import logger
 async def trick(p: Task):
     while True:
         logger.log("three")
-        await p.play(1, 41, 30, 50)
+        await p.play(0, 41, 30, 50)
 
 
 async def track(p: Task):
@@ -29,4 +29,4 @@ async def track(p: Task):
 
 
 if __name__ == "__main__":
-    run(track, 120)
+    run(track, 90)
