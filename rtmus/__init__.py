@@ -44,8 +44,7 @@ async def async_main(track: Callable[[Task], Awaitable[None]], bpm: float) -> No
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
-    performance.start()
-    performance.new_task(performance.track)
+    await performance.start()
     tick_delta = 0.0
     tick_jitter = 0.0
     msg: Optional[List[int]]

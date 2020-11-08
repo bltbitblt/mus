@@ -11,7 +11,7 @@ from attr import Factory, dataclass
 from .log import logger
 from .metronome import Metronome
 from .midi import (ALL_CHANNELS, ALL_NOTES_OFF, CLOCK, CONTROL_CHANGE,
-                   NOTE_OFF, NOTE_ON, START, STOP, MidiOut)
+                   NOTE_OFF, NOTE_ON, SONG_POSITION, START, STOP, MidiOut)
 
 _resolution = 0.001
 
@@ -74,16 +74,24 @@ class Performance:
     def new_task(self, task: Callable[[Task], Awaitable[None]]) -> None:
         self.tasks.append(Task(task, self))
 
-    def start(self) -> None:
-        logger.log("send start")
+    async def start(self) -> None:
+        self.out.send_message([SONG_POSITION, 0, 0])
+        await asyncio.sleep(60 / self.bpm / 24)
+        self.new_task(self.track)
+        logger.log("START")
         self.out.send_message([START])
+        await asyncio.sleep(0.001)
+        self.out.send_message([CLOCK])
+        await asyncio.sleep(60 / self.bpm / 24)
+        self.out.send_message([CLOCK])
+        await asyncio.sleep(60 / self.bpm / 24)
 
     def stop(self) -> None:
         logger.log("cancel tasks")
         for task in self.tasks:
             task.cancel()
-        out = self.out
         logger.log("send stop")
+        out = self.out
         out.send_message([STOP])
         for channel in ALL_CHANNELS:
             out.send_message([CONTROL_CHANGE | channel, ALL_NOTES_OFF, 0])

@@ -20,7 +20,8 @@ class Countdown(asyncio.Future):
 
 @dataclass
 class Metronome:
-    last: float = time()
+    # TODO do this proper
+    last: float = time() + 60 / 120 / 12
     delta: float = 60 / 120 / 24
     last_delta: float = delta
     countdowns: List[Countdown] = Factory(list)

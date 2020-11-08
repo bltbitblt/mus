@@ -6,8 +6,8 @@ from rtmus.log import logger
 
 async def trick(p: Task):
     while True:
-        logger.log("tree")
-        await p.play(0, 48, 30, 10)
+        logger.log("three")
+        await p.play(1, 41, 30, 50)
 
 
 async def track(p: Task):
