@@ -16,25 +16,28 @@ from .midi import (ALL_CHANNELS, ALL_NOTES_OFF, CLOCK, CONTROL_CHANGE,
 _resolution = 0.001
 
 
-async def task_handler(task: Awaitable[None]):
+async def task_handler(task: Awaitable[None], name):
     try:
-        logger.log("track start")
+        logger.log(f"{name} start")
         await task
     except asyncio.CancelledError:
-        logger.log("track stop")
+        logger.log(f"{name} stop")
         raise
     except Exception:
-        logger.log("exception")
+        logger.log(f"{name} exception")
         traceback.print_exc()
         raise
 
 
 class Task:
     def __init__(
-        self, task: Callable[[Task], Awaitable[None]], performance: Performance
+        self,
+        task: Callable[[Task], Awaitable[None]],
+        performance: Performance,
+        name="track",
     ):
         self.performance = performance
-        self.task = asyncio.create_task(task_handler(task(self)))
+        self.task = asyncio.create_task(task_handler(task(self), name))
         self.waiting = False
         self.cancel = self.task.cancel
         self.new = performance.new_task
@@ -71,26 +74,29 @@ class Performance:
     position: int = 0
     tasks: List[Task] = []
 
-    def new_task(self, task: Callable[[Task], Awaitable[None]]) -> None:
-        self.tasks.append(Task(task, self))
+    def new_task(self, task: Callable[[Task], Awaitable[None]], name="track") -> None:
+        self.tasks.append(Task(task, self, name))
 
     async def start(self) -> None:
         self.out.send_message([SONG_POSITION, 0, 0])
         await asyncio.sleep(60 / self.bpm / 24)
         self.new_task(self.track)
-        logger.log("START")
+        logger.log("send start")
         self.out.send_message([START])
+        # Workaround for tempo independent offset due Bitwigs audio-delay-correction
         await asyncio.sleep(0.001)
         self.out.send_message([CLOCK])
         await asyncio.sleep(60 / self.bpm / 24)
         self.out.send_message([CLOCK])
         await asyncio.sleep(60 / self.bpm / 24)
 
-    def stop(self) -> None:
+    async def stop(self) -> None:
         logger.log("cancel tasks")
         for task in self.tasks:
             task.cancel()
+        self.tasks = []
         logger.log("send stop")
+        await asyncio.sleep(0)
         out = self.out
         out.send_message([STOP])
         for channel in ALL_CHANNELS:

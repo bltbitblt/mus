@@ -38,12 +38,13 @@ async def async_main(track: Callable[[Task], Awaitable[None]], bpm: float) -> No
         await midi_consumer(queue, performance)
     except asyncio.CancelledError:
         midi_in.cancel_callback()
-        performance.stop()
+        await performance.stop()
 
 
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
+    gc_count = gc.collect(1)
     await performance.start()
     tick_delta = 0.0
     tick_jitter = 0.0
@@ -57,6 +58,7 @@ async def midi_consumer(
         except asyncio.QueueEmpty:
             msg, delta = (None, None)
         tick_delta, tick_jitter = await performance.tick(now)
+        # Garbage collect with the deadline
         gc_count = gc.collect(1)
         if __debug__:
             if gc_count:
