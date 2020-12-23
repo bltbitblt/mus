@@ -2,3 +2,4 @@ __pycache__
 /build/
 /pyproject.toml
 /rtmus.egg-info/
+/.dmypy.json
