@@ -6,3 +6,4 @@ find . -name "*.py" | entr sh -c "
     flake8 rtmus
     pytest rtmus
     ag TODO rtmus
+"
