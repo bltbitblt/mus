@@ -4,8 +4,6 @@ import asyncio
 from time import time
 from typing import List, Tuple
 
-from attr import Factory, dataclass
-
 from .util import spin_resolution, spin_sleep
 
 spin_sleep_threshold = 1.0 + 2 * spin_resolution
