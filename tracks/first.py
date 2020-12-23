@@ -11,7 +11,7 @@ async def trick(p: Task):
 
 
 async def track(p: Task):
-    p.new(trick, "three")
+    # p.new(trick, "three")
     while True:
         logger.log("beat")
         logger.log("4th")
