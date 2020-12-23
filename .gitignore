@@ -3,3 +3,4 @@ __pycache__
 /pyproject.toml
 /rtmus.egg-info/
 /.dmypy.json
+/tracks/*/auto-backups/

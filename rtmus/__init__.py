@@ -8,6 +8,7 @@ import uvloop  # type: ignore
 from .log import logger
 from .midi import MidiMessage, get_ports
 from .performance import Performance, Task
+from .util import spin_sleep
 
 
 def run(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
@@ -71,4 +72,4 @@ async def midi_consumer(
             )
         rest = deadline - time()
         if rest > 0:
-            await performance.spin_sleep(rest)
+            await spin_sleep(rest)

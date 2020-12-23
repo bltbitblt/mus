@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import asyncio
 import traceback
-from time import time
 from typing import Awaitable, Callable, List, Tuple
 
 from attr import Factory, dataclass
@@ -22,8 +21,7 @@ from .midi import (
     STOP,
     MidiOut,
 )
-
-_resolution = 0.001
+from .util import spin_sleep
 
 
 async def task_handler(task: Awaitable[None], name):
@@ -51,6 +49,14 @@ class Task:
         self.waiting = False
         self.cancel = self.task.cancel
         self.new = performance.new_task
+
+    @property
+    def bpm(self):
+        return self.performance.bpm
+
+    @bpm.setter
+    def bpm(self, value: float):
+        self.performance.bpm = value
 
     async def wait(self, pulses: int) -> None:
         self.waiting = True
@@ -88,17 +94,18 @@ class Performance:
         self.tasks.append(Task(task, self, name))
 
     async def start(self) -> None:
+        self.metronome.bpm = self.bpm
         self.out.send_message([SONG_POSITION, 0, 0])
-        await asyncio.sleep(60 / self.bpm / 24)
+        await spin_sleep(60 / self.bpm / 24)
         self.new_task(self.track)
         logger.log("send start")
         self.out.send_message([START])
         # Workaround for tempo independent offset due Bitwigs audio-delay-correction
         await asyncio.sleep(0.001)
         self.out.send_message([CLOCK])
-        await asyncio.sleep(60 / self.bpm / 24)
+        await spin_sleep(60 / self.bpm / 24)
         self.out.send_message([CLOCK])
-        await asyncio.sleep(60 / self.bpm / 24)
+        await spin_sleep(60 / self.bpm / 24)
 
     async def stop(self) -> None:
         logger.log("cancel tasks")
@@ -117,10 +124,5 @@ class Performance:
         self.position += 1
         while len(self.tasks) and not all([task.waiting for task in self.tasks]):
             await asyncio.sleep(0)
+        self.metronome.bpm = self.bpm
         return await self.metronome.tick(now)
-
-    async def spin_sleep(self, sleep_time):
-        deadline = sleep_time + time()
-        await asyncio.sleep(sleep_time - _resolution)
-        while deadline > time():
-            await asyncio.sleep(0)

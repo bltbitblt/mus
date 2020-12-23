@@ -6,15 +6,20 @@ from typing import List, Tuple
 
 from attr import Factory, dataclass
 
+from .util import spin_resolution, spin_sleep
+
+spin_sleep_threshold = 1.0 + 2 * spin_resolution
+
 
 class Countdown(asyncio.Future):
-    def __init__(self, value: int, *, loop=None) -> None:
+    def __init__(self, value: float, *, loop=None) -> None:
         super().__init__(loop=loop)
         self._value = value
 
-    def tick(self) -> None:
+    async def tick(self, bpm: float) -> None:
         self._value -= 1
-        if self._value == 0 and not self.done():
+        if self._value < spin_sleep_threshold and not self.done():
+            await spin_sleep(60 / bpm / 24 * self._value)
             self.set_result(None)
 
 
@@ -24,15 +29,17 @@ class Metronome:
     last: float = time() + 60 / 120 / 12
     delta: float = 60 / 120 / 24
     last_delta: float = delta
+    bpm: float = 120
     countdowns: List[Countdown] = Factory(list)
     bar: asyncio.Event = Factory(asyncio.Event)
 
-    async def wait(self, pulses: int) -> None:
-        if pulses == 0:
-            return
-        countdown = Countdown(pulses)
-        self.countdowns.append(countdown)
-        await countdown
+    async def wait(self, pulses: float) -> None:
+        if pulses < spin_sleep_threshold:
+            await spin_sleep(60 / self.bpm / 24 * pulses)
+        else:
+            countdown = Countdown(pulses)
+            self.countdowns.append(countdown)
+            await countdown
 
     def reset(self) -> None:
         self.bar.clear()
@@ -48,7 +55,7 @@ class Metronome:
         self.last_delta = self.delta
         done_indexes: List[int] = []
         for index, countdown in enumerate(self.countdowns):
-            countdown.tick()
+            await countdown.tick(self.bpm)
             if countdown.done():
                 done_indexes.append(index)
         for index in reversed(done_indexes):
