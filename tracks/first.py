@@ -13,18 +13,7 @@ async def trick(p: Task):
 async def track(p: Task):
     # p.new(trick, "three")
     while True:
-        logger.log("fast beat")
-        logger.log("4th")
-        p.bpm = 160
-        await p.play(0, 48, 24, 100)
-        logger.log("4th")
-        await p.play(0, 48, 24, 100)
-        logger.log("4th")
-        await p.play(0, 48, 24, 100)
-        logger.log("4th")
-        await p.play(0, 48, 24, 100)
-        p.bpm = 80
-        logger.log("slow beat")
+        logger.log("beat")
         logger.log("4th")
         await p.play(0, 48, 24, 100)
         logger.log("4th")
@@ -36,4 +25,4 @@ async def track(p: Task):
 
 
 if __name__ == "__main__":
-    run(track, 90)
+    run(track, 90.05)

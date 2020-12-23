@@ -50,14 +50,6 @@ class Task:
         self.cancel = self.task.cancel
         self.new = performance.new_task
 
-    @property
-    def bpm(self):
-        return self.performance.bpm
-
-    @bpm.setter
-    def bpm(self, value: float):
-        self.performance.bpm = value
-
     async def wait(self, pulses: float) -> None:
         self.waiting = True
         await self.performance.metronome.wait(pulses)
@@ -84,17 +76,23 @@ class Task:
 class Performance:
     out: MidiOut
     track: Callable[[Task], Awaitable[None]]
-    bpm: float = 120
     metronome: Metronome = Factory(Metronome)
     last_note: int = 48
     position: int = 0
     tasks: List[Task] = []
 
+    @property
+    def bpm(self):
+        return self.metronome.bpm
+
+    @bpm.setter
+    def bpm(self, value: float):
+        self.metronome.bpm = value
+
     def new_task(self, task: Callable[[Task], Awaitable[None]], name="track") -> None:
         self.tasks.append(Task(task, self, name))
 
     async def start(self) -> None:
-        self.metronome.bpm = self.bpm
         self.out.send_message([SONG_POSITION, 0, 0])
         await spin_sleep(60 / self.bpm / 24)
         self.new_task(self.track)
@@ -124,5 +122,4 @@ class Performance:
         self.position += 1
         while len(self.tasks) and not all([task.waiting for task in self.tasks]):
             await asyncio.sleep(0)
-        self.metronome.bpm = self.bpm
         return await self.metronome.tick(now)
