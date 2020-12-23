@@ -26,9 +26,19 @@ class Metronome:
         self.last = time() + 60 / bpm / 12
         self.delta = 60 / bpm / 24
         self.last_delta = self.delta
-        self.bpm = bpm
+        self._bpm = bpm
+        self.tick_len = self.delta
         self.countdowns: List[Countdown] = []
         self.bar: asyncio.Event = asyncio.Event()
+
+    @property
+    def bpm(self) -> float:
+        return self._bpm
+
+    @bpm.setter
+    def bpm(self, value: float):
+        self._bpm = value
+        self.tick_len = 60 / value / 24
 
     async def wait(self, pulses: float) -> None:
         if pulses < spin_sleep_threshold:
@@ -48,7 +58,7 @@ class Metronome:
     async def tick(self, now: float) -> Tuple[float, float]:
         self.delta = now - self.last
         self.last = now
-        jitter = (self.delta - self.last_delta) * 1000
+        jitter = 100 / self.tick_len * (self.delta - self.last_delta)
         self.last_delta = self.delta
         done_indexes: List[int] = []
         for index, countdown in enumerate(self.countdowns):
