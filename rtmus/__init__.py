@@ -1,5 +1,9 @@
 import asyncio
+import atexit
+import fcntl
 import gc
+import os
+import sys
 from time import time
 from typing import Awaitable, Callable, List, Optional
 
@@ -10,8 +14,24 @@ from .midi import MidiMessage, get_ports
 from .performance import Performance, Task
 from .util import spin_sleep
 
+_fd_flags: Optional[int] = None
+_fd: Optional[int] = None
+
+
+def restore_fd():
+    assert fcntl.fcntl(_fd, fcntl.F_GETFL) & os.O_NONBLOCK
+    fcntl.fcntl(_fd, fcntl.F_SETFL, _fd_flags)
+    assert not fcntl.fcntl(_fd, fcntl.F_GETFL) & os.O_NONBLOCK
+
 
 def run(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
+    global _fd_flags
+    global _fd
+    _fd = sys.stderr.fileno()
+    _fd_flags = fcntl.fcntl(_fd, fcntl.F_GETFL)
+    assert not (_fd_flags & os.O_NONBLOCK)
+    fcntl.fcntl(_fd, fcntl.F_SETFL, _fd_flags | os.O_NONBLOCK)
+    assert fcntl.fcntl(_fd, fcntl.F_GETFL) & os.O_NONBLOCK
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(async_main(track, bpm))
 

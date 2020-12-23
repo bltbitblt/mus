@@ -1,3 +1,4 @@
+import sys
 from time import time
 
 from attr import dataclass
@@ -11,7 +12,7 @@ class DeltaLogger:
     def log(self, msg: str):
         log_time = time() - self.base_time
         delta = log_time - self.last_time
-        print(f"time: {log_time:8.4f}▐time delta: {delta:.6f}▐{msg}")
+        sys.stderr.write(f"time: {log_time:8.4f}▐time delta: {delta:.6f}▐{msg}\n")
         self.last_time = log_time
 
 
