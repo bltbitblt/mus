@@ -34,8 +34,7 @@ async def async_main(track: Callable[[Task], Awaitable[None]], bpm: float) -> No
             print(f"callback exc: {type(be)} {be}")
 
     midi_in.set_callback(midi_callback)
-    performance = Performance(midi_out, track)
-    performance.bpm = bpm
+    performance = Performance(midi_out, track, bpm)
     try:
         await midi_consumer(queue, performance)
     except asyncio.CancelledError:

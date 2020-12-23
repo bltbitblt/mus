@@ -23,15 +23,14 @@ class Countdown(asyncio.Future):
             self.set_result(None)
 
 
-@dataclass
 class Metronome:
-    # TODO do this proper
-    last: float = time() + 60 / 120 / 12
-    delta: float = 60 / 120 / 24
-    last_delta: float = delta
-    bpm: float = 120
-    countdowns: List[Countdown] = Factory(list)
-    bar: asyncio.Event = Factory(asyncio.Event)
+    def __init__(self, bpm):
+        self.last = time() + 60 / bpm / 12
+        self.delta = 60 / bpm / 24
+        self.last_delta = self.delta
+        self.bpm = bpm
+        self.countdowns: List[Countdown] = []
+        self.bar: asyncio.Event = asyncio.Event()
 
     async def wait(self, pulses: float) -> None:
         if pulses < spin_sleep_threshold:

@@ -50,6 +50,14 @@ class Task:
         self.cancel = self.task.cancel
         self.new = performance.new_task
 
+    @property
+    def bpm(self):
+        return self.performance.bpm
+
+    @bpm.setter
+    def bpm(self, value: float):
+        self.performance.bpm = value
+
     async def wait(self, pulses: float) -> None:
         self.waiting = True
         await self.performance.metronome.wait(pulses)
@@ -72,14 +80,16 @@ class Task:
         await self.wait(rest_length)
 
 
-@dataclass
 class Performance:
-    out: MidiOut
-    track: Callable[[Task], Awaitable[None]]
-    metronome: Metronome = Factory(Metronome)
-    last_note: int = 48
-    position: int = 0
-    tasks: List[Task] = []
+    def __init__(
+        self, out: MidiOut, track: Callable[[Task], Awaitable[None]], bpm: float
+    ):
+        self.out = out
+        self.track = track
+        self.metronome = Metronome(bpm)
+        self.last_note = 48
+        self.position = 0
+        self.tasks: List[Task] = []
 
     @property
     def bpm(self):
