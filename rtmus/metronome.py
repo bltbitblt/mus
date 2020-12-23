@@ -48,7 +48,7 @@ class Metronome:
     async def tick(self, now: float) -> Tuple[float, float]:
         self.delta = now - self.last
         self.last = now
-        jitter = (self.last_delta - self.delta) * 1000
+        jitter = (self.delta - self.last_delta) * 1000
         self.last_delta = self.delta
         done_indexes: List[int] = []
         for index, countdown in enumerate(self.countdowns):
