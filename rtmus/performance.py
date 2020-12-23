@@ -58,7 +58,7 @@ class Task:
     def bpm(self, value: float):
         self.performance.bpm = value
 
-    async def wait(self, pulses: int) -> None:
+    async def wait(self, pulses: float) -> None:
         self.waiting = True
         await self.performance.metronome.wait(pulses)
         self.waiting = False
@@ -67,7 +67,7 @@ class Task:
         self,
         channel: int,
         note: int,
-        pulses: int,
+        pulses: float,
         volume: int,
         decay: float = 0.5,
     ) -> None:
