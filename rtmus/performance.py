@@ -10,8 +10,18 @@ from attr import Factory, dataclass
 
 from .log import logger
 from .metronome import Metronome
-from .midi import (ALL_CHANNELS, ALL_NOTES_OFF, CLOCK, CONTROL_CHANGE,
-                   NOTE_OFF, NOTE_ON, SONG_POSITION, START, STOP, MidiOut)
+from .midi import (
+    ALL_CHANNELS,
+    ALL_NOTES_OFF,
+    CLOCK,
+    CONTROL_CHANGE,
+    NOTE_OFF,
+    NOTE_ON,
+    SONG_POSITION,
+    START,
+    STOP,
+    MidiOut,
+)
 
 _resolution = 0.001
 
