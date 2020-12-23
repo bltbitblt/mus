@@ -1,5 +1,3 @@
-import asyncio
-
 from rtmus import Task, run
 from rtmus.log import logger
 

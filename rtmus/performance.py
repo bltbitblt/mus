@@ -5,8 +5,6 @@ import asyncio
 import traceback
 from typing import Awaitable, Callable, List, Tuple
 
-from attr import Factory, dataclass
-
 from .log import logger
 from .metronome import Metronome
 from .midi import (

@@ -31,6 +31,7 @@ def run(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
     _fd_flags = fcntl.fcntl(_fd, fcntl.F_GETFL)
     assert not (_fd_flags & os.O_NONBLOCK)
     fcntl.fcntl(_fd, fcntl.F_SETFL, _fd_flags | os.O_NONBLOCK)
+    atexit.register(restore_fd)
     assert fcntl.fcntl(_fd, fcntl.F_GETFL) & os.O_NONBLOCK
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
     asyncio.run(async_main(track, bpm))
