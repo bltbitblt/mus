@@ -4,9 +4,9 @@ import asyncio
 from time import time
 from typing import List, Tuple
 
-from .util import spin_resolution, spin_sleep
+from .util import sleep_resolution, spin_sleep
 
-spin_sleep_threshold = 1.0 + 2 * spin_resolution
+spin_sleep_threshold = 1.0 + 2 * sleep_resolution
 
 
 class Countdown(asyncio.Future):

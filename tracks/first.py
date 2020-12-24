@@ -23,4 +23,4 @@ async def track(p: Task):
 
 
 if __name__ == "__main__":
-    run(track, 90.05)
+    run(track, 90)
