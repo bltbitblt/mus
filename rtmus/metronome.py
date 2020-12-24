@@ -13,12 +13,21 @@ class Countdown(asyncio.Future):
     def __init__(self, value: float, *, loop=None) -> None:
         super().__init__(loop=loop)
         self._value = value
+        self._scheduled = False
+
+    async def resolve(self, bpm):
+        await spin_sleep(60 / bpm / 24 * self._value)
+        self.set_result(None)
 
     async def tick(self, bpm: float) -> None:
         self._value -= 1
-        if self._value < spin_sleep_threshold and not self.done():
-            await spin_sleep(60 / bpm / 24 * self._value)
-            self.set_result(None)
+        if (
+            self._value < spin_sleep_threshold
+            and not self._scheduled
+            and not self.done()
+        ):
+            self._scheduled = True
+            asyncio.create_task(self.resolve(bpm))
 
 
 class Metronome:

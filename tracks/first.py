@@ -8,18 +8,21 @@ async def trick(p: Task):
         await p.play(0, 41, 30, 50)
 
 
+n = 50
+
+
 async def track(p: Task):
     # p.new(trick, "three")
     while True:
         logger.log("beat")
         logger.log("4th")
-        await p.play(0, 48, 24, 100)
+        await p.play(0, n, 24, 100)
         logger.log("4th")
-        await p.play(0, 48, 24, 100)
+        await p.play(0, n, 24, 100)
         logger.log("4th")
-        await p.play(0, 48, 24, 100)
+        await p.play(0, n, 24, 100)
         logger.log("4th")
-        await p.play(0, 48, 24, 100)
+        await p.play(0, n, 24, 100)
 
 
 if __name__ == "__main__":
