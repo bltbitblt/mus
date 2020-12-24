@@ -62,6 +62,8 @@ async def midi_consumer(
         except asyncio.QueueEmpty:
             msg, delta = (None, None)
         tick_delta, tick_jitter = await performance.tick(now)
+        # We assume that events cluster around pulses so we move gc and printing to an
+        # odd moment
         rest = deadline - time()
         delay = rest * odd_time
         if delay > 0:
