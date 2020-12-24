@@ -38,7 +38,6 @@ class Metronome:
         self._bpm = bpm
         self.tick_len = self.delta
         self.countdowns: List[Countdown] = []
-        self.bar: asyncio.Event = asyncio.Event()
         self.tasks = []
 
     @property
@@ -64,7 +63,6 @@ class Metronome:
         self.tasks = []
 
     def reset(self) -> None:
-        self.bar.clear()
         for countdown in self.countdowns:
             if not countdown.done():  # could have been cancelled by CTRL-C
                 countdown.cancel()

@@ -44,7 +44,6 @@ class Task:
     ):
         self.performance = performance
         self.task = asyncio.create_task(task_handler(task(self), name))
-        self.waiting = False
         self.cancel = self.task.cancel
         self.new = performance.new_task
 
@@ -57,9 +56,7 @@ class Task:
         self.performance.bpm = value
 
     async def wait(self, pulses: float) -> None:
-        self.waiting = True
         await self.performance.metronome.wait(pulses)
-        self.waiting = False
 
     async def play(
         self,
@@ -127,6 +124,4 @@ class Performance:
     async def tick(self, now: float) -> Tuple[float, float]:
         self.out.send_message([CLOCK])
         self.position += 1
-        while len(self.tasks) and not all([task.waiting for task in self.tasks]):
-            await asyncio.sleep(0)
         return await self.metronome.tick(now)

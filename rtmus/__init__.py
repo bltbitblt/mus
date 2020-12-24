@@ -10,6 +10,8 @@ from .midi import MidiMessage, get_ports
 from .performance import Performance, Task
 from .util import spin_sleep
 
+odd_time = 11 / 17
+
 
 def run(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
@@ -49,6 +51,7 @@ async def midi_consumer(
     await performance.start()
     tick_delta = 0.0
     tick_jitter = 0.0
+    avg_jitter = 0.0
     msg: Optional[List[int]]
     delta: Optional[float]
     while True:
@@ -59,16 +62,23 @@ async def midi_consumer(
         except asyncio.QueueEmpty:
             msg, delta = (None, None)
         tick_delta, tick_jitter = await performance.tick(now)
-        # Garbage collect with the deadline
+        rest = deadline - time()
+        delay = rest * odd_time
+        if delay > 0:
+            await spin_sleep(delay)
         gc_count = gc.collect(1)
         if __debug__:
+            pos = performance.position
+            avg_jitter += tick_jitter * tick_jitter
+            if pos == 100:
+                avg_jitter = 0
             if gc_count:
                 logger.log(f"gc: {gc_count}")
             if msg:
                 logger.log(f"msg: {str(msg):^15}▐delta: {delta:5f}")
             logger.log(
                 f"tick delta: {tick_delta:.5f}▐jitter: {tick_jitter:8.3f}%▐"
-                f"pos: {performance.position}"
+                f"avg jitter: {(avg_jitter/pos):8.3f}▐pos: {pos}"
             )
         rest = deadline - time()
         if rest > 0:
