@@ -80,6 +80,7 @@ async def midi_consumer(
                 f"tick delta: {tick_delta:.5f}▐jitter: {tick_jitter:8.3f}%▐"
                 f"avg jitter: {(avg_jitter/pos):8.3f}▐pos: {pos}"
             )
+        logger.flush()
         rest = deadline - time()
         if rest > 0:
             await spin_sleep(rest)
