@@ -19,7 +19,7 @@ class Countdown(asyncio.Future):
         await spin_sleep(60 / bpm / 24 * self._value)
         self.set_result(None)
 
-    async def tick(self, bpm: float) -> None:
+    async def tick(self, tasks, bpm: float):
         self._value -= 1
         if (
             self._value < spin_sleep_threshold
@@ -27,7 +27,7 @@ class Countdown(asyncio.Future):
             and not self.done()
         ):
             self._scheduled = True
-            asyncio.create_task(self.resolve(bpm))
+            tasks.append(asyncio.create_task(self.resolve(bpm)))
 
 
 class Metronome:
@@ -39,6 +39,7 @@ class Metronome:
         self.tick_len = self.delta
         self.countdowns: List[Countdown] = []
         self.bar: asyncio.Event = asyncio.Event()
+        self.tasks = []
 
     @property
     def bpm(self) -> float:
@@ -57,6 +58,11 @@ class Metronome:
             self.countdowns.append(countdown)
             await countdown
 
+    def stop(self):
+        for task in self.tasks:
+            task.cancel()
+        self.tasks = []
+
     def reset(self) -> None:
         self.bar.clear()
         for countdown in self.countdowns:
@@ -71,7 +77,7 @@ class Metronome:
         self.last_delta = self.delta
         done_indexes: List[int] = []
         for index, countdown in enumerate(self.countdowns):
-            await countdown.tick(self.bpm)
+            await countdown.tick(self.tasks, self.bpm)
             if countdown.done():
                 done_indexes.append(index)
         for index in reversed(done_indexes):

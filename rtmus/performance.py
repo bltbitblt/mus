@@ -117,6 +117,7 @@ class Performance:
         logger.log("cancel tasks")
         for task in self.tasks:
             task.cancel()
+        self.metronome.stop()
         self.tasks = []
         logger.log("send stop")
         await asyncio.sleep(0)
