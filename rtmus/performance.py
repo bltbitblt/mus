@@ -110,8 +110,6 @@ class Performance:
         await asyncio.sleep(0.001)
         self.out.send_message([CLOCK])
         await spin_sleep(60 / self.bpm / 24)
-        self.out.send_message([CLOCK])
-        await spin_sleep(60 / self.bpm / 24)
 
     async def stop(self) -> None:
         logger.log("cancel tasks")
