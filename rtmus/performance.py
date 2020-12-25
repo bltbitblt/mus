@@ -5,16 +5,7 @@ from time import time
 from typing import List, Tuple
 
 from .log import logger
-from .midi import (
-    ALL_CHANNELS,
-    ALL_NOTES_OFF,
-    CLOCK,
-    CONTROL_CHANGE,
-    SONG_POSITION,
-    START,
-    STOP,
-    MidiOut,
-)
+from .midi import MidiOut, c, silence
 from .track import Track
 from .util import spin_sleep, task_sig
 
@@ -42,15 +33,15 @@ class Performance:
 
     async def start(self) -> None:
         self._position = 0
-        self.out.send_message([SONG_POSITION, 0, 0])
+        self.out.send_message([c.SONG_POSITION, 0, 0])
         await spin_sleep(60 / self.bpm / 24)
         logger.base_time = time()
         self.new_track(self.main_task, "main")
         logger.log("send start")
-        self.out.send_message([START])
+        self.out.send_message([c.START])
         # Send first clock
         await asyncio.sleep(0.001)
-        self.out.send_message([CLOCK])
+        self.out.send_message([c.CLOCK])
         await spin_sleep(60 / self.bpm / 24)
 
     async def stop(self) -> None:
@@ -60,10 +51,7 @@ class Performance:
         self.tracks = []
         await asyncio.sleep(0)
         logger.log("send stop")
-        out = self.out
-        out.send_message([STOP])
-        for channel in ALL_CHANNELS:
-            out.send_message([CONTROL_CHANGE | channel, ALL_NOTES_OFF, 0])
+        silence(self.out)
 
     def tick(self, now: float) -> Tuple[float, float]:
         self._position += 1
@@ -71,7 +59,7 @@ class Performance:
         self.last = now
         jitter = 100 / self.tick_len * (self.delta - self.last_delta)
         self.last_delta = self.delta
-        self.out.send_message([CLOCK])
+        self.out.send_message([c.CLOCK])
 
         for track in self.tracks:
             track.tick(self._position)

@@ -5,7 +5,7 @@ import traceback
 from typing import TYPE_CHECKING, Awaitable, Optional
 
 from .log import logger
-from .midi import NOTE_OFF, NOTE_ON
+from .midi import c
 from .util import sleep_resolution, spin_sleep, task_sig
 
 if TYPE_CHECKING:
@@ -122,7 +122,7 @@ class Track:
         out = self._performance.out
         note_on_length = pulses * decay
         rest_length = pulses - note_on_length
-        out.send_message([NOTE_ON | channel, note, volume])
+        out.send_message([c.NOTE_ON | channel, note, volume])
         await self.wait(note_on_length)
-        out.send_message([NOTE_OFF | channel, note, volume])
+        out.send_message([c.NOTE_OFF | channel, note, volume])
         return await self.wait(rest_length)
