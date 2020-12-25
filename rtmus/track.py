@@ -44,12 +44,18 @@ class Track:
     ):
         self._performance = performance
         self._task = asyncio.create_task(task_handler(task(self), name))
-        self.cancel = self.task.cancel
         self.new = performance.new_track
         self._name = name
         self._future: Optional[asyncio.Future] = None
+        self._trigger: Optional[asyncio.Task] = None
         self._deadline: float = 0
         self._position: float = 0
+
+    def cancel(self, msg: Optional[str] = None) -> None:
+        trigger = self._trigger
+        if trigger:
+            trigger.cancel(msg)
+        self._task.cancel(msg)
 
     @property
     def task(self):
@@ -99,7 +105,7 @@ class Track:
         if self._future and position > (self._deadline - spin_sleep_threshold):
             future = self._future
             self._future = None
-            asyncio.create_task(
+            self.trigger = asyncio.create_task(
                 trigger_deadline(future, position, self._deadline, self.bpm),
                 name="trigger_deadline",
             )
