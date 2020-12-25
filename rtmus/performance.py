@@ -46,6 +46,7 @@ class Task:
         self.task = asyncio.create_task(task_handler(task(self), name))
         self.cancel = self.task.cancel
         self.new = performance.new_task
+        self.metronome = performance.metronome
 
     @property
     def bpm(self):
@@ -55,8 +56,16 @@ class Task:
     def bpm(self, value: float):
         self.performance.bpm = value
 
-    async def wait(self, pulses: float) -> None:
-        await self.performance.metronome.wait(pulses)
+    @property
+    def position(self):
+        return self.performance.position
+
+    @property
+    def pos(self):
+        return self.performance.position
+
+    async def wait(self, pulses: float) -> float:
+        return await self.metronome.wait(pulses)
 
     async def play(
         self,
@@ -65,14 +74,14 @@ class Task:
         pulses: float,
         volume: int,
         decay: float = 0.5,
-    ) -> None:
+    ) -> float:
         out = self.performance.out
         note_on_length = int(round(pulses * decay, 0))
         rest_length = pulses - note_on_length
         out.send_message([NOTE_ON | channel, note, volume])
         await self.wait(note_on_length)
         out.send_message([NOTE_OFF | channel, note, volume])
-        await self.wait(rest_length)
+        return await self.wait(rest_length)
 
 
 class Performance:
@@ -83,7 +92,6 @@ class Performance:
         self.track = track
         self.metronome = Metronome(bpm)
         self.last_note = 48
-        self.position = 0
         self.tasks: List[Task] = []
 
     @property
@@ -93,6 +101,10 @@ class Performance:
     @bpm.setter
     def bpm(self, value: float):
         self.metronome.bpm = value
+
+    @property
+    def position(self):
+        return self.metronome.position
 
     def new_task(self, task: Callable[[Task], Awaitable[None]], name="track") -> None:
         self.tasks.append(Task(task, self, name))
@@ -123,5 +135,4 @@ class Performance:
 
     async def tick(self, now: float) -> Tuple[float, float]:
         self.out.send_message([CLOCK])
-        self.position += 1
         return await self.metronome.tick(now)

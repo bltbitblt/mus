@@ -2,7 +2,7 @@
 
 find . -name "*.py" | entr sh -c "
     set -e
-    dmypy run -- rtmus tests tracks
+    dmypy run -- rtmus tracks
     flake8 rtmus tracks
     # pytest rtmus
     ag TODO rtmus
