@@ -40,16 +40,17 @@ class Track:
         self,
         performance: Performance,
         task: task_sig,
-        name="track",
+        name: str = "track",
+        position: float = 0,
     ):
         self._performance = performance
         self._task = asyncio.create_task(task_handler(task(self), name))
-        self.new = performance.new_track
         self._name = name
+        self.new = performance.new_track
         self._future: Optional[asyncio.Future] = None
         self._trigger: Optional[asyncio.Task] = None
         self._deadline: float = 0
-        self._position: float = 0
+        self._position: float = position
 
     def cancel(self, msg: Optional[str] = None) -> None:
         trigger = self._trigger

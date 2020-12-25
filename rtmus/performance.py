@@ -58,8 +58,8 @@ class Performance:
         for track in self.tracks:
             track.cancel()
         self.tracks = []
-        logger.log("send stop")
         await asyncio.sleep(0)
+        logger.log("send stop")
         out = self.out
         out.send_message([STOP])
         for channel in ALL_CHANNELS:

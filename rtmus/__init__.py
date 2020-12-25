@@ -16,8 +16,11 @@ odd_time = 11 / 17
 
 
 def run(task: task_sig, bpm: float) -> None:
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    asyncio.run(async_main(task, bpm))
+    try:
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+        asyncio.run(async_main(task, bpm))
+    finally:
+        logger.flush()
 
 
 async def async_main(task: task_sig, bpm: float) -> None:
