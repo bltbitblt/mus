@@ -72,7 +72,7 @@ async def midi_consumer(
         if __debug__:
             pos = performance.position
             avg_jitter += tick_jitter * tick_jitter
-            if pos == 100:
+            if pos == 10:
                 avg_jitter = 0
             if gc_count:
                 logger.log(f"gc: {gc_count}")
