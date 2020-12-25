@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import traceback
+from time import time
 from typing import Awaitable, Callable, List, Tuple
 
 from .log import logger
@@ -110,12 +111,14 @@ class Performance:
         self.tasks.append(Task(task, self, name))
 
     async def start(self) -> None:
+        self.metronome.start()
         self.out.send_message([SONG_POSITION, 0, 0])
         await spin_sleep(60 / self.bpm / 24)
+        logger.base_time = time()
         self.new_task(self.track)
         logger.log("send start")
         self.out.send_message([START])
-        # Workaround for tempo independent offset due Bitwigs audio-delay-correction
+        # Send first clock
         await asyncio.sleep(0.001)
         self.out.send_message([CLOCK])
         await spin_sleep(60 / self.bpm / 24)

@@ -9,7 +9,6 @@ async def trick(p: Task):
 
 
 n = 50
-x = 1
 
 
 async def track(p: Task):
@@ -17,8 +16,10 @@ async def track(p: Task):
     pos = p.pos
     while True:
         logger.log("4th: {0}", pos)
-        # pos = await p.play(0, n, 24 * x, 100, 0.1)
-        pos = await p.wait(0.5)
+        pos = await p.play(0, n, 24, 100, 0.1)
+        # pos = await p.play(0, n, 12, 100, 0.1)
+        # logger.log("wait: {0}", pos)
+        # pos = await p.wait(12)
 
 
 if __name__ == "__main__":

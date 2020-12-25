@@ -60,12 +60,13 @@ class Metronome:
             self.countdowns.append(countdown)
             return await countdown
 
+    def start(self):
+        self.position = 1
+
     def stop(self):
         for task in self.tasks:
             task.cancel()
         self.tasks = []
-
-    def reset(self) -> None:
         for countdown in self.countdowns:
             if not countdown.done():  # could have been cancelled by CTRL-C
                 countdown.cancel()
