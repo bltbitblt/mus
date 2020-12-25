@@ -1,24 +1,26 @@
 import asyncio
 import gc
 from time import time
-from typing import Awaitable, Callable, List, Optional
+from typing import List, Optional
 
 import uvloop  # type: ignore
 
 from .log import logger
 from .midi import MidiMessage, get_ports
-from .performance import Performance, Task
+from .performance import Performance
+from .track import Track, task_sig
 from .util import spin_sleep
 
+Track = Track
 odd_time = 11 / 17
 
 
-def run(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
+def run(task: task_sig, bpm: float) -> None:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    asyncio.run(async_main(track, bpm))
+    asyncio.run(async_main(task, bpm))
 
 
-async def async_main(track: Callable[[Task], Awaitable[None]], bpm: float) -> None:
+async def async_main(task: task_sig, bpm: float) -> None:
     queue: asyncio.Queue[MidiMessage] = asyncio.Queue(maxsize=256)
     loop = asyncio.get_event_loop()
 
@@ -36,7 +38,7 @@ async def async_main(track: Callable[[Task], Awaitable[None]], bpm: float) -> No
             print(f"callback exc: {type(be)} {be}")
 
     midi_in.set_callback(midi_callback)
-    performance = Performance(midi_out, track, bpm)
+    performance = Performance(midi_out, task, bpm)
     try:
         await midi_consumer(queue, performance)
     except asyncio.CancelledError:
@@ -61,7 +63,7 @@ async def midi_consumer(
             msg, delta = queue.get_nowait()
         except asyncio.QueueEmpty:
             msg, delta = (None, None)
-        tick_delta, tick_jitter = await performance.tick(now)
+        tick_delta, tick_jitter = performance.tick(now)
         # We assume that events cluster around pulses so we move gc and printing to an
         # odd moment
         rest = deadline - time()

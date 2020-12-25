@@ -1,8 +1,8 @@
-from rtmus import Task, run
+from rtmus import Track, run
 from rtmus.log import logger
 
 
-async def trick(p: Task):
+async def trick(p: Track):
     while True:
         logger.log("three")
         await p.play(0, 41, 30, 50)
@@ -11,7 +11,7 @@ async def trick(p: Task):
 n = 50
 
 
-async def track(p: Task):
+async def track(p: Track):
     # p.new(trick, "three")
     pos = p.pos
     while True:
