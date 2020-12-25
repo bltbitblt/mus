@@ -74,7 +74,7 @@ async def midi_consumer(
         if __debug__:
             pos = performance.position
             avg_jitter += tick_jitter * tick_jitter
-            if pos == 10:
+            if pos < 10:
                 avg_jitter = 0
             if gc_count:
                 logger.log(f"gc: {gc_count}")
@@ -82,7 +82,7 @@ async def midi_consumer(
                 logger.log(f"msg: {str(msg):^15}▐delta: {delta:5f}")
             logger.log(
                 f"tick delta: {tick_delta:.5f}▐jitter: {tick_jitter:8.3f}%▐"
-                f"avg jitter: {(avg_jitter/pos):8.3f}▐pos: {pos}"
+                f"avg jitter: {avg_jitter/(pos + 10):8.3f}▐pos: {pos}"
             )
         logger.flush()
         rest = deadline - time()

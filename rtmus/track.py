@@ -30,8 +30,8 @@ async def task_handler(task: Awaitable[None], name):
 async def trigger_deadline(
     future: asyncio.Future, position: int, deadline: float, bpm: float
 ):
-    delay = deadline - position
-    await spin_sleep(60 / bpm / 24 * delay)
+    pulses = deadline - position
+    await spin_sleep(60 / bpm / 24 * pulses)
     future.set_result(deadline)
 
 
@@ -86,9 +86,13 @@ class Track:
     async def wait(self, pulses: float) -> float:
         if self._future:
             raise RuntimeError(f"Track {self.name} is already waiting")
-        self._deadline = self._position + pulses
-        self._future = asyncio.Future()
-        self._position = await self._future
+        if pulses > spin_sleep_threshold:
+            self._deadline = self._position + pulses
+            self._future = asyncio.Future()
+            self._position = await self._future
+        else:
+            await spin_sleep(60 / self.bpm / 24 * pulses)
+            self._position += pulses
         return self._position
 
     def tick(self, position: int) -> None:

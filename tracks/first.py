@@ -16,10 +16,10 @@ async def track(p: Track):
     pos = p.pos
     while True:
         logger.log("4th: {0}", pos)
-        pos = await p.play(0, n, 24, 100, 0.1)
-        # pos = await p.play(0, n, 12, 100, 0.1)
-        # logger.log("wait: {0}", pos)
-        # pos = await p.wait(12)
+        # pos = await p.play(0, n, 24, 100, 0.1)
+        pos = await p.play(0, n, 23.5, 100, 0.1)
+        logger.log("wait: {0}", pos)
+        pos = await p.wait(0.5)
 
 
 if __name__ == "__main__":
