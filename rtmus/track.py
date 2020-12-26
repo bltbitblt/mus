@@ -178,8 +178,8 @@ class Track:
         self.off_l(self.channel, note)
 
     def off_all(self):
-        for note in self._active:
-            self.off_l(*note)
+        for channel, note in self._active:
+            self._out.send_message([c.NOTE_OFF | channel, note, 0])
         self._active.clear()
 
     async def play(
