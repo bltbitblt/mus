@@ -56,6 +56,8 @@ class Track:
         self._out = performance.out
         self.c = c
         self.r = Random(1)
+        self.last_note: int = 48
+        self.last_channel: int = channel
 
         self.decay: float = 0.5
 
@@ -64,6 +66,7 @@ class Track:
         if trigger:
             trigger.cancel(msg)
         self._task.cancel(msg)
+        self._out.send_message([c.NOTE_OFF | self.last_channel, self.last_note, 0])
 
     def sync(self):
         self._position = round(self._position)
@@ -168,12 +171,12 @@ class Track:
             self.channel, note, length, int(127 * volume), decay
         )
 
-    async def cc(self, type: int, value: Union[float, int]):
+    def cc(self, type: int, value: Union[float, int]):
         if isinstance(value, float):
             value = int(127 * value)
         self.cc_lowlevel(self.channel, type, value)
 
-    async def cc_lowlevel(self, channel: int, type: int, value: int):
+    def cc_lowlevel(self, channel: int, type: int, value: int):
         self._out.send_message([c.CONTROL_CHANGE | channel, type, value])
 
     async def play_lowlevel(
@@ -185,6 +188,8 @@ class Track:
         decay: float = 0.5,
     ) -> float:
         out = self._out
+        self.last_note = note
+        self.last_channel = channel
         note_on_length = pulses * decay
         rest_length = pulses - note_on_length
         out.send_message([c.NOTE_ON | channel, note, volume])

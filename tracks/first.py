@@ -20,8 +20,7 @@ async def track(p: Track):
         p.sync()
         p.cc(p.c.MODULATION_WHEEL, p.r.random())
         logger.log("4th: {0}", p.pos)
-        await p.wait(4)
-        # await p.play(50, 4)
+        await p.play(50, 4)
 
 
 if __name__ == "__main__":

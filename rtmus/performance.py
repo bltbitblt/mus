@@ -14,7 +14,6 @@ class Performance:
     def __init__(self, out: MidiOut, main_task: task_sig, bpm: float):
         self.out = out
         self.main_task = main_task
-        self.last_note = 48
         self.tracks: List[Track] = []
         self._position: int = 0
 
