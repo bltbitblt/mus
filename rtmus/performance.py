@@ -42,15 +42,19 @@ class Performance:
     def position(self):
         return self._position
 
-    def new_track(self, task: task_sig, name="track") -> None:
-        self.tracks.append(Track(self, task, name))
+    def new_track(
+        self, task: task_sig, channel: int = 0, position: float = 0, name="track"
+    ) -> Track:
+        track = Track(self, task, channel, position, name)
+        self.tracks.append(track)
+        return track
 
     async def start(self) -> None:
         self._position = 0
         self.out.send_message([c.SONG_POSITION, 0, 0])
         await spin_sleep(60 / self.bpm / self.ppb)
         logger.base_time = time()
-        self.new_track(self.main_task, "main")
+        self.new_track(self.main_task, name="main")
         logger.log("send start")
         self.out.send_message([c.START])
         # Send first clock

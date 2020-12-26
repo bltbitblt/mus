@@ -40,13 +40,13 @@ class Track:
         self,
         performance: Performance,
         task: task_sig,
-        name: str = "track",
+        channel: int = 0,
         position: float = 0,
+        name: str = "track",
     ):
         self._performance = performance
         self._task = asyncio.create_task(task_handler(task(self), name))
         self._name = name
-        self.new = performance.new_track
         self._future: Optional[asyncio.Future] = None
         self._trigger: Optional[asyncio.Task] = None
         self._deadline: float = 0
@@ -66,6 +66,11 @@ class Track:
 
     def bar(self, n):
         return self.ppa * n
+
+    def new(self, task: task_sig, channel: int = 0, name="track") -> Track:
+        self._performance.new_track(
+            task, channel=channel, position=self._position, name=name
+        )
 
     @property
     def task(self):
