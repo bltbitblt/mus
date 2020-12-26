@@ -1,6 +1,8 @@
-from rtmus import Track, run
+from rtmus import Track, note as n, run
 from rtmus.log import logger
 from rtmus.overlay import _a_a
+from rtmus.scale import major
+from rtmus.util import note_to_name
 
 acc = _a_a(0.5, 1)
 
@@ -11,9 +13,6 @@ async def trick(p: Track):
         await p.play(60, 3)
 
 
-n = 50
-
-
 async def track(p: Track):
     p.decay = 1 / 6
 
@@ -21,11 +20,12 @@ async def track(p: Track):
     # t.decay = 1 / 6
     while True:
         p.sync()
-        logger.log("4th: {0}", p.pos)
-        # await p.wait(4)
-        p.cc(p.c.MODULATION_WHEEL, p.r.random())
-        vol = acc[p.pos]
-        await p.play((50, 54), 4, vol)
+        for i in range(15):
+            logger.log("4th: {0}", p.pos)
+            vol = acc[p.pos]
+            note = major[i] + n.C3
+            logger.log(note_to_name(note))
+            await p.play(note, 8, vol)
 
 
 if __name__ == "__main__":
