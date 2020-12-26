@@ -85,7 +85,7 @@ async def midi_consumer(
                 logger.log(f"msg: {str(msg):^15}▐delta: {delta:5f}")
             logger.log(
                 f"tick delta: {tick_delta:.5f}▐jitter: {tick_jitter:8.3f}%▐"
-                f"avg jitter: {avg_jitter/(pos + 10):8.3f}▐pos: {pos}"
+                f"avg jitter: {avg_jitter/(pos + 10):8.5f}▐pos: {pos}"
             )
         logger.flush()
         rest = deadline - time()
