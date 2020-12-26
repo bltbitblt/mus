@@ -1,5 +1,8 @@
 from rtmus import Track, run
 from rtmus.log import logger
+from rtmus.overlay import _a_a
+
+acc = _a_a(0.5, 1)
 
 
 async def trick(p: Track):
@@ -21,7 +24,8 @@ async def track(p: Track):
         logger.log("4th: {0}", p.pos)
         # await p.wait(4)
         p.cc(p.c.MODULATION_WHEEL, p.r.random())
-        await p.play((50, 54), 4)
+        vol = acc[p.pos]
+        await p.play((50, 54), 4, vol)
 
 
 if __name__ == "__main__":

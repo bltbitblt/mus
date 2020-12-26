@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import traceback
 from random import Random
-from typing import TYPE_CHECKING, Awaitable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Awaitable, Iterable, List, Optional, Tuple, Union
 
 from .log import logger
 from .midi import c
@@ -156,17 +156,19 @@ class Track:
     def cc(self, type: int, value: Union[float, int]):
         self.cc_l(self.channel, type, value)
 
-    def cc_l(self, channel: int, type: int, value: Union[float, int]):
-        if isinstance(value, float):
-            value = int(127 * value)
+    def cc_l(self, channel: int, type: int, value: float):
+        self.cc_li(channel, type, int(value * 127))
+
+    def cc_li(self, channel: int, type: int, value: int):
         self._out.send_message([c.CONTROL_CHANGE | channel, type, value])
 
-    def on(self, note: int, volume: Union[float, int] = 0.788):
+    def on(self, note: int, volume: float = 0.788):
         self.on_l(self.channel, note, volume)
 
-    def on_l(self, channel: int, note: int, volume: Union[float, int] = 0.788):
-        if isinstance(volume, float):
-            volume = int(volume * 127)
+    def on_l(self, channel: int, note: int, volume: float = 0.788):
+        self.on_li(channel, note, int(volume * 127))
+
+    def on_li(self, channel: int, note: int, volume: int = 100):
         self._out.send_message([c.NOTE_ON | channel, note, volume])
         self._active.append((channel, note))
 
@@ -184,9 +186,9 @@ class Track:
 
     async def play(
         self,
-        note: Union[int, List[int]],
+        note: Union[int, Iterable[int]],
         length: float,
-        volume: Union[float, int] = 0.788,
+        volume: float = 0.788,
         decay: Optional[float] = None,
     ) -> float:
         if decay is None:
@@ -200,14 +202,14 @@ class Track:
     async def play_l(
         self,
         channel: int,
-        notes: Union[int, List[int]],
+        notes: Union[int, Iterable[int]],
         pulses: float,
-        volume: Union[float, int] = 0.788,
+        volume: float = 0.788,
         decay: float = 0.5,
     ) -> float:
         note_on_length = pulses * decay
         rest_length = pulses - note_on_length
-        if not isinstance(notes, (list, tuple)):
+        if isinstance(notes, int):
             notes = [notes]
         for note in notes:
             self.on_l(channel, note, volume)
