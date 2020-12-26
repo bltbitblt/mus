@@ -5,21 +5,21 @@ from rtmus.log import logger
 async def trick(p: Track):
     while True:
         logger.log("three: {0}", p.pos)
-        await p.play(0, 60, p.th(3), 100, 1 / 6)
+        await p.play(60, 3)
 
 
 n = 50
 
 
 async def track(p: Track):
-    p.new(trick, "three")
+    p.decay = 1 / 6
+
+    t = p.new(trick, name="three")
+    t.decay = 1 / 6
     while True:
         p.sync()
         logger.log("4th: {0}", p.pos)
-        # await p.play(0, n, p.th(4), 100, 1 / 6)
-        pos = await p.play(0, n, p.ppb - (1 / 3), 100, 1 / 6)
-        logger.log("wait: {0}", pos)
-        pos = await p.wait(1 / 3)
+        await p.play(50, 4)
 
 
 if __name__ == "__main__":

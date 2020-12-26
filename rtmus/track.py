@@ -46,11 +46,14 @@ class Track:
     ):
         self._performance = performance
         self._task = asyncio.create_task(task_handler(task(self), name))
+        self.channel = channel
+        self._position: float = position
         self._name = name
         self._future: Optional[asyncio.Future] = None
         self._trigger: Optional[asyncio.Task] = None
         self._deadline: float = 0
-        self._position: float = position
+
+        self.decay: float = 0.5
 
     def cancel(self, msg: Optional[str] = None) -> None:
         trigger = self._trigger
@@ -68,7 +71,7 @@ class Track:
         return self.ppa * n
 
     def new(self, task: task_sig, channel: int = 0, name="track") -> Track:
-        self._performance.new_track(
+        return self._performance.new_track(
             task, channel=channel, position=self._position, name=name
         )
 
@@ -134,6 +137,19 @@ class Track:
             )
 
     async def play(
+        self,
+        note: int,
+        th: float,
+        volume: float = 0.788,
+        decay: Optional[float] = None,
+    ) -> float:
+        if decay is None:
+            decay = self.decay
+        return await self.play_lowlevel(
+            self.channel, note, self.th(th), int(127 * volume), decay
+        )
+
+    async def play_lowlevel(
         self,
         channel: int,
         note: int,
