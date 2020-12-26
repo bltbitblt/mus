@@ -66,6 +66,7 @@ class Track:
             trigger.cancel(msg)
         self._task.cancel(msg)
         self.off_all()
+        self._performance.tracks.remove(self)
 
     def sync(self):
         self._position = round(self._position)
@@ -76,7 +77,15 @@ class Track:
     def bar(self, n):
         return self.ppa * n
 
-    def new(self, task: task_sig, channel: int = 0, name="track") -> Track:
+    def new(
+        self,
+        task: task_sig,
+        channel: int = 0,
+        name="track",
+        replace: Optional[Track] = None,
+    ) -> Track:
+        if replace:
+            replace.cancel()
         return self._performance.new_track(
             task, channel=channel, position=self._position, name=name
         )

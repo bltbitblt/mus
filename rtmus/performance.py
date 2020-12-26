@@ -61,7 +61,7 @@ class Performance:
 
     async def stop(self) -> None:
         logger.log("cancel tracks")
-        for track in self.tracks:
+        for track in list(self.tracks):
             track.cancel()
         self.tracks = []
         await asyncio.sleep(0)
