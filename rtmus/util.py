@@ -32,7 +32,7 @@ def note_to_name(note: int) -> str:
 
     note = int(round(note))
 
-    return "%s%s" % (semis[note % 12], str(note // 12 - 1))
+    return "%s%s" % (semis[note % 12], str(note // 12 - 2))
 
 
 def note_to_name_flat(note: int) -> str:
@@ -40,7 +40,7 @@ def note_to_name_flat(note: int) -> str:
 
     note = int(round(note))
 
-    return "%s%s" % (semis[note % 12], str(note // 12 - 1))
+    return "%s%s" % (semis[note % 12], str(note // 12 - 2))
 
 
 def name_to_note(name: str) -> int:
@@ -55,4 +55,4 @@ def name_to_note(name: str) -> int:
         octave_index = 1
     octave = int(name[octave_index:])
 
-    return 12 * (octave + 1) + pitch + accent
+    return 12 * (octave + 2) + pitch + accent
