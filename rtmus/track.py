@@ -184,7 +184,7 @@ class Track:
 
     async def play(
         self,
-        note: int,
+        note: Union[int, List[int]],
         length: float,
         volume: Union[float, int] = 0.788,
         decay: Optional[float] = None,
@@ -200,14 +200,18 @@ class Track:
     async def play_l(
         self,
         channel: int,
-        note: int,
+        notes: Union[int, List[int]],
         pulses: float,
         volume: Union[float, int] = 0.788,
         decay: float = 0.5,
     ) -> float:
         note_on_length = pulses * decay
         rest_length = pulses - note_on_length
-        self.on_l(channel, note, volume)
+        if not isinstance(notes, (list, tuple)):
+            notes = [notes]
+        for note in notes:
+            self.on_l(channel, note, volume)
         await self.wait_l(note_on_length)
-        self.off_l(channel, note)
+        for note in notes:
+            self.off_l(channel, note)
         return await self.wait_l(rest_length)

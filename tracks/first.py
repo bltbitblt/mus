@@ -18,17 +18,10 @@ async def track(p: Track):
     # t.decay = 1 / 6
     while True:
         p.sync()
-        # p.cc(p.c.MODULATION_WHEEL, p.r.random())
         logger.log("4th: {0}", p.pos)
         # await p.wait(4)
-        p.on(50)
-        await p.wait(4)
-        p.on(54)
-        await p.wait(4)
-        p.on(58)
-        await p.wait(4)
-        p.off_all()
-        await p.wait(4)
+        p.cc(p.c.MODULATION_WHEEL, p.r.random())
+        await p.play((50, 54), 4)
 
 
 if __name__ == "__main__":
