@@ -67,6 +67,7 @@ class Performance:
         await asyncio.sleep(0)
         logger.log("send stop")
         silence(self.out)
+        self.out.send_message([c.SONG_POSITION, 0, 0])
         await asyncio.sleep(0.001)
 
     def tick(self, now: float) -> Tuple[float, float]:

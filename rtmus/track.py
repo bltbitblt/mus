@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import traceback
 from random import Random
-from typing import TYPE_CHECKING, Awaitable, Optional, Union
+from typing import TYPE_CHECKING, Awaitable, List, Optional, Tuple, Union
 
 from .log import logger
 from .midi import c
@@ -56,8 +56,7 @@ class Track:
         self._out = performance.out
         self.c = c
         self.r = Random(1)
-        self.last_note: int = 48
-        self.last_channel: int = channel
+        self._active: List[Tuple[int, int]] = []
 
         self.decay: float = 0.5
 
@@ -66,7 +65,7 @@ class Track:
         if trigger:
             trigger.cancel(msg)
         self._task.cancel(msg)
-        self._out.send_message([c.NOTE_OFF | self.last_channel, self.last_note, 0])
+        self.off_all()
 
     def sync(self):
         self._position = round(self._position)
@@ -128,12 +127,12 @@ class Track:
 
     async def wait(self, length) -> float:
         if length < 0:
-            length = self.bar(length)
+            length = self.bar(length * -1)
         else:
             length = self.th(length)
-        return await self.wait_lowlevel(length)
+        return await self.wait_l(length)
 
-    async def wait_lowlevel(self, pulses: float) -> float:
+    async def wait_l(self, pulses: float) -> float:
         if self._future:
             raise RuntimeError(f"Track {self.name} is already waiting")
         if pulses > spin_sleep_threshold:
@@ -154,45 +153,61 @@ class Track:
                 name="trigger_deadline",
             )
 
+    def cc(self, type: int, value: Union[float, int]):
+        self.cc_l(self.channel, type, value)
+
+    def cc_l(self, channel: int, type: int, value: Union[float, int]):
+        if isinstance(value, float):
+            value = int(127 * value)
+        self._out.send_message([c.CONTROL_CHANGE | channel, type, value])
+
+    def on(self, note: int, volume: Union[float, int] = 0.788):
+        self.on_l(self.channel, note, volume)
+
+    def on_l(self, channel: int, note: int, volume: Union[float, int] = 0.788):
+        if isinstance(volume, float):
+            volume = int(volume * 127)
+        self._out.send_message([c.NOTE_ON | channel, note, volume])
+        self._active.append((channel, note))
+
+    def off_l(self, channel: int, note: int):
+        self._out.send_message([c.NOTE_OFF | channel, note, 0])
+        self._active.remove((channel, note))
+
+    def off(self, channel: int, note: int):
+        self.off_l(self.channel, note)
+
+    def off_all(self):
+        for note in self._active:
+            self.off_l(*note)
+        self._active.clear()
+
     async def play(
         self,
         note: int,
         length: float,
-        volume: float = 0.788,
+        volume: Union[float, int] = 0.788,
         decay: Optional[float] = None,
     ) -> float:
         if decay is None:
             decay = self.decay
         if length < 0:
-            length = self.bar(length)
+            length = self.bar(length * -1)
         else:
             length = self.th(length)
-        return await self.play_lowlevel(
-            self.channel, note, length, int(127 * volume), decay
-        )
+        return await self.play_l(self.channel, note, length, volume, decay)
 
-    def cc(self, type: int, value: Union[float, int]):
-        if isinstance(value, float):
-            value = int(127 * value)
-        self.cc_lowlevel(self.channel, type, value)
-
-    def cc_lowlevel(self, channel: int, type: int, value: int):
-        self._out.send_message([c.CONTROL_CHANGE | channel, type, value])
-
-    async def play_lowlevel(
+    async def play_l(
         self,
         channel: int,
         note: int,
         pulses: float,
-        volume: int,
+        volume: Union[float, int] = 0.788,
         decay: float = 0.5,
     ) -> float:
-        out = self._out
-        self.last_note = note
-        self.last_channel = channel
         note_on_length = pulses * decay
         rest_length = pulses - note_on_length
-        out.send_message([c.NOTE_ON | channel, note, volume])
-        await self.wait_lowlevel(note_on_length)
-        out.send_message([c.NOTE_OFF | channel, note, volume])
-        return await self.wait_lowlevel(rest_length)
+        self.on_l(channel, note, volume)
+        await self.wait_l(note_on_length)
+        self.off_l(channel, note)
+        return await self.wait_l(rest_length)
