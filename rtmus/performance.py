@@ -57,8 +57,6 @@ class Performance:
         self.new_track(self.main_task, name="main")
         logger.log("send start")
         self.out.send_message([c.START])
-        # Send first clock
-        await asyncio.sleep(0.001)
         self.out.send_message([c.CLOCK])
         await spin_sleep(60 / self.bpm / self.ppb)
 
@@ -70,6 +68,7 @@ class Performance:
         await asyncio.sleep(0)
         logger.log("send stop")
         silence(self.out)
+        await asyncio.sleep(0.001)
 
     def tick(self, now: float) -> Tuple[float, float]:
         self._position += 1

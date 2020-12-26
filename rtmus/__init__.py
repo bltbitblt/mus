@@ -52,7 +52,7 @@ async def async_main(task: task_sig, bpm: float) -> None:
 async def midi_consumer(
     queue: asyncio.Queue[MidiMessage], performance: Performance
 ) -> None:
-    gc_count = gc.collect(1)
+    gc_count = gc.collect()
     await performance.start()
     tick_delta = 0.0
     tick_jitter = 0.0

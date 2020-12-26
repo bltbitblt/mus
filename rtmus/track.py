@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import traceback
-from typing import TYPE_CHECKING, Awaitable, Optional
+from random import Random
+from typing import TYPE_CHECKING, Awaitable, Optional, Union
 
 from .log import logger
 from .midi import c
@@ -52,6 +53,9 @@ class Track:
         self._future: Optional[asyncio.Future] = None
         self._trigger: Optional[asyncio.Task] = None
         self._deadline: float = 0
+        self._out = performance.out
+        self.c = c
+        self.r = Random(1)
 
         self.decay: float = 0.5
 
@@ -74,6 +78,10 @@ class Track:
         return self._performance.new_track(
             task, channel=channel, position=self._position, name=name
         )
+
+    @property
+    def out(self):
+        return self._out
 
     @property
     def task(self):
@@ -115,7 +123,14 @@ class Track:
     def bpm(self, value: float):
         self._performance.bpm = value
 
-    async def wait(self, pulses: float) -> float:
+    async def wait(self, length) -> float:
+        if length < 0:
+            length = self.bar(length)
+        else:
+            length = self.th(length)
+        return await self.wait_lowlevel(length)
+
+    async def wait_lowlevel(self, pulses: float) -> float:
         if self._future:
             raise RuntimeError(f"Track {self.name} is already waiting")
         if pulses > spin_sleep_threshold:
@@ -139,15 +154,27 @@ class Track:
     async def play(
         self,
         note: int,
-        th: float,
+        length: float,
         volume: float = 0.788,
         decay: Optional[float] = None,
     ) -> float:
         if decay is None:
             decay = self.decay
+        if length < 0:
+            length = self.bar(length)
+        else:
+            length = self.th(length)
         return await self.play_lowlevel(
-            self.channel, note, self.th(th), int(127 * volume), decay
+            self.channel, note, length, int(127 * volume), decay
         )
+
+    async def cc(self, type: int, value: Union[float, int]):
+        if isinstance(value, float):
+            value = int(127 * value)
+        self.cc_lowlevel(self.channel, type, value)
+
+    async def cc_lowlevel(self, channel: int, type: int, value: int):
+        self._out.send_message([c.CONTROL_CHANGE | channel, type, value])
 
     async def play_lowlevel(
         self,
@@ -157,10 +184,10 @@ class Track:
         volume: int,
         decay: float = 0.5,
     ) -> float:
-        out = self._performance.out
+        out = self._out
         note_on_length = pulses * decay
         rest_length = pulses - note_on_length
         out.send_message([c.NOTE_ON | channel, note, volume])
-        await self.wait(note_on_length)
+        await self.wait_lowlevel(note_on_length)
         out.send_message([c.NOTE_OFF | channel, note, volume])
-        return await self.wait(rest_length)
+        return await self.wait_lowlevel(rest_length)
