@@ -61,7 +61,7 @@ async def midi_consumer(
     delta: Optional[float]
     while True:
         now = time()
-        deadline = now + (60 / performance.bpm / 24)
+        deadline = now + (60 / performance.bpm / performance.ppb)
         try:
             msg, delta = queue.get_nowait()
         except asyncio.QueueEmpty:

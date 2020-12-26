@@ -28,10 +28,10 @@ async def task_handler(task: Awaitable[None], name):
 
 
 async def trigger_deadline(
-    future: asyncio.Future, position: int, deadline: float, bpm: float
+    future: asyncio.Future, position: int, deadline: float, bpm: float, ppb: int
 ):
     pulses = deadline - position
-    await spin_sleep(60 / bpm / 24 * pulses)
+    await spin_sleep(60 / bpm / ppb * pulses)
     future.set_result(deadline)
 
 
@@ -83,6 +83,10 @@ class Track:
         return self._deadline
 
     @property
+    def ppb(self):
+        return self._performance.pulses_per_beat
+
+    @property
     def bpm(self):
         return self._performance.bpm
 
@@ -98,7 +102,7 @@ class Track:
             self._future = asyncio.Future()
             self._position = await self._future
         else:
-            await spin_sleep(60 / self.bpm / 24 * pulses)
+            await spin_sleep(60 / self.bpm / self.ppb * pulses)
             self._position += pulses
         return self._position
 
@@ -107,7 +111,7 @@ class Track:
             future = self._future
             self._future = None
             self.trigger = asyncio.create_task(
-                trigger_deadline(future, position, self._deadline, self.bpm),
+                trigger_deadline(future, position, self._deadline, self.bpm, self.ppb),
                 name="trigger_deadline",
             )
 

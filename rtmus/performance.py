@@ -18,11 +18,21 @@ class Performance:
         self.tracks: List[Track] = []
         self._position: int = 0
 
-        self.last = time() + 60 / bpm / 12
-        self.delta = 60 / bpm / 24
+        self.beats_per_bar = 4
+        self.pulses_per_beat = 24
+        self.last = time() + 60 / bpm / self.ppb * 2
+        self.delta = 60 / bpm / self.ppb
         self.last_delta = self.delta
         self.bpm = bpm
         self.tick_len = self.delta
+
+    @property
+    def ppb(self):
+        return self.pulses_per_beat
+
+    @property
+    def pulses_per_bar(self):
+        return self.pulses_per_beat * self.beats_per_bar
 
     @property
     def position(self):
@@ -34,7 +44,7 @@ class Performance:
     async def start(self) -> None:
         self._position = 0
         self.out.send_message([c.SONG_POSITION, 0, 0])
-        await spin_sleep(60 / self.bpm / 24)
+        await spin_sleep(60 / self.bpm / self.ppb)
         logger.base_time = time()
         self.new_track(self.main_task, "main")
         logger.log("send start")
@@ -42,7 +52,7 @@ class Performance:
         # Send first clock
         await asyncio.sleep(0.001)
         self.out.send_message([c.CLOCK])
-        await spin_sleep(60 / self.bpm / 24)
+        await spin_sleep(60 / self.bpm / self.ppb)
 
     async def stop(self) -> None:
         logger.log("cancel tracks")

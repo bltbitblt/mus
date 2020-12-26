@@ -12,10 +12,10 @@ n = 50
 
 
 async def track(p: Track):
-    p.new(trick, "three")
+    # p.new(trick, "three")
     while True:
         logger.log("4th: {0}", p.pos)
-        await p.play(0, n, 24, 100, 1 / 6)
+        await p.play(0, n, p.ppb, 100, 1 / 6)
         # pos = await p.play(0, n, 23.5, 100, 1/12)
         # logger.log("wait: {0}", pos)
         # pos = await p.wait(24)
