@@ -58,6 +58,15 @@ class Track:
             trigger.cancel(msg)
         self._task.cancel(msg)
 
+    def sync(self):
+        self._position = round(self._position)
+
+    def th(self, n):
+        return self.ppa / n
+
+    def bar(self, n):
+        return self.ppa * n
+
     @property
     def task(self):
         return self._task
@@ -85,6 +94,10 @@ class Track:
     @property
     def ppb(self):
         return self._performance.pulses_per_beat
+
+    @property
+    def ppa(self):
+        return self._performance.pulses_per_bar
 
     @property
     def bpm(self):

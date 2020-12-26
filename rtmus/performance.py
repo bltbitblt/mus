@@ -31,6 +31,10 @@ class Performance:
         return self.pulses_per_beat
 
     @property
+    def ppa(self):
+        return self.pulses_per_beat * self.beats_per_bar
+
+    @property
     def pulses_per_bar(self):
         return self.pulses_per_beat * self.beats_per_bar
 

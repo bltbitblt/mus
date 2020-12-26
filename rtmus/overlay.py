@@ -1,6 +1,8 @@
 from attr import dataclass
 
+from .track import Track
+
 
 @dataclass
 class Overlay:
-    length: int = 96
+    pass
