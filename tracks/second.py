@@ -16,7 +16,7 @@ async def glitch(p: Track):
 async def drums(p: Track):
     hh_c = n.Ab1
     hh_o = n.Eb1
-    hh = cyc([hh_c, hh_c, hh_c, hh_c, hh_o])
+    hh = cyc([hh_c, hh_c, hh_c, hh_c, hh_o, hh_c])
     sn = n.Db1
     while True:
         p.sync()
