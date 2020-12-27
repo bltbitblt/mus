@@ -11,9 +11,9 @@ class Overlay:
         return self.data[index % self.length].pop().data
 
 
-def _a_a(low, high):
-    a = Overlay(48)
-    a.data[0:20] = low
-    a.data[20:28] = high
-    a.data[28:48] = low
+def _a_a(low, high, scale=1):
+    a = Overlay(48 * scale)
+    a.data[0 : 20 * scale] = low
+    a.data[20 * scale : 28 * scale] = high
+    a.data[28 * scale : 48 * scale] = low
     return a
