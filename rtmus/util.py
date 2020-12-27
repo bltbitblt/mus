@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+from itertools import cycle
 from time import time
 from typing import TYPE_CHECKING, Awaitable, Callable
 
@@ -56,3 +57,12 @@ def name_to_note(name: str) -> int:
     octave = int(name[octave_index:])
 
     return 12 * (octave + 2) + pitch + accent
+
+
+def cyc(iter):
+    c = cycle(iter)
+
+    def n():
+        return next(c)
+
+    return n

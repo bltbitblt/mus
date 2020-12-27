@@ -69,6 +69,7 @@ class Track:
         self._performance.tracks.remove(self)
 
     def sync(self):
+        logger.log("sync {0}", self._name)
         self._position = round(self._position)
 
     def th(self, n):
