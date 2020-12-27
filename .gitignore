@@ -4,3 +4,4 @@ __pycache__
 /rtmus.egg-info/
 /.dmypy.json
 /tracks/*/auto-backups/
+/tracks/*/recordings/
