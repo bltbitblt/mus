@@ -20,14 +20,14 @@ async def drums(p: Track):
     sn = n.Db1
     while True:
         p.sync()
-        await p.play(hh(), 8, acc[p.pos])
-        await p.play(hh(), 8, acc[p.pos])
-        await p.play((sn, hh()), 8, acc[p.pos])
-        await p.play(hh(), 8, acc[p.pos])
-        await p.play(hh(), 8, acc[p.pos])
-        await p.play(hh(), 8, acc[p.pos])
-        await p.play((sn, hh()), 8, acc[p.pos])
-        await p.play(hh(), 8, acc[p.pos])
+        await p.play(hh(), 8, p.get(acc))
+        await p.play(hh(), 8, p.get(acc))
+        await p.play((sn, hh()), 8, p.get(acc))
+        await p.play(hh(), 8, p.get(acc))
+        await p.play(hh(), 8, p.get(acc))
+        await p.play(hh(), 8, p.get(acc))
+        await p.play((sn, hh()), 8, p.get(acc))
+        await p.play(hh(), 8, p.get(acc))
 
 
 async def track(p: Track):

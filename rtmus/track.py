@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Awaitable, Iterable, List, Optional, Tuple, Un
 
 from .log import logger
 from .midi import c
+from .overlay import Overlay
 from .util import sleep_resolution, spin_sleep, task_sig
 
 if TYPE_CHECKING:
@@ -90,6 +91,9 @@ class Track:
         return self._performance.new_track(
             task, channel=channel, position=self._position, name=name
         )
+
+    def get(self, overlay: Overlay):
+        return overlay[self._position]
 
     @property
     def out(self):
